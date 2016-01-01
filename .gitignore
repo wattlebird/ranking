@@ -55,3 +55,10 @@ docs/_build/
 
 # PyBuilder
 target/
+
+#IPython
+*.ipynb
+*.ipynb_checkpoints
+
+#Data
+Data/*
