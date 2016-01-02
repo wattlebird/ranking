@@ -64,23 +64,25 @@ def run():
 
     # Start query
     # Read from database and writes (uid, iid, rate) into a bin file
-    cnt=0
+    ucnt=0
     usertable = dict()
     for q in session.query(Record.name).filter(and_(Record.typ=='anime',
         Record.rate!=None)).group_by(Record.name).all():
-        usertable[q.name]=cnt;
-        cnt+=1;
+        usertable[q.name]=ucnt;
+        ucnt+=1;
 
-    cnt=0
+    icnt=0
     itemtable = dict()
     for q in session.query(Record.iid).filter(and_(Record.typ=='anime',
         Record.rate!=None)).group_by(Record.iid).all():
-        itemtable[q.iid]=cnt
-        cnt+=1
+        itemtable[q.iid]=icnt
+        icnt+=1
 
     partialquery = session.query(Record.name, Record.iid, Record.rate).filter(
                    and_(Record.rate!=None, Record.typ=='anime'));
     with open("../Data/input.bin","wb") as fw:
+        strrec = struct.pack("ii", ucnt, icnt)
+        fw.write(strrec)
         for username in usertable.iterkeys():
             for q in partialquery.filter(Record.name==username).all():
                 strrec = struct.pack("iih", usertable[username],
@@ -93,6 +95,7 @@ def test():
     import struct
     cnt=0;
     with open("../Data/input.bin","rb") as fr:
+        fr.seek(8)
         while True:
             strrec = fr.read(10)
             if not strrec: break;
