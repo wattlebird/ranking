@@ -62,3 +62,6 @@ target/
 
 #Data
 Data/*
+
+#PyCharm
+.idea

@@ -4,7 +4,7 @@ from sqlalchemy import Column, Integer, String, Date
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy import func, and_
-import struct
+import pandas as pd
 
 Base = declarative_base()
 
@@ -62,44 +62,17 @@ def run():
     Session = sessionmaker(bind=engine)
     session = Session()
 
-    # Start query
-    # Read from database and writes (uid, iid, rate) into a bin file
-    ucnt=0
-    usertable = dict()
-    for q in session.query(Record.name).filter(and_(Record.typ=='anime',
-        Record.rate!=None)).group_by(Record.name).all():
-        usertable[q.name]=ucnt;
-        ucnt+=1;
-
-    icnt=0
-    itemtable = dict()
-    for q in session.query(Record.iid).filter(and_(Record.typ=='anime',
-        Record.rate!=None)).group_by(Record.iid).all():
-        itemtable[q.iid]=icnt
-        icnt+=1
-
-    partialquery = session.query(Record.name, Record.iid, Record.rate).filter(
-                   and_(Record.rate!=None, Record.typ=='anime'));
-    with open("../Data/input.bin","wb") as fw:
-        strrec = struct.pack("ii", ucnt, icnt)
-        fw.write(strrec)
-        for username in usertable.iterkeys():
-            for q in partialquery.filter(Record.name==username).all():
-                strrec = struct.pack("iih", usertable[username],
-                                     itemtable[q.iid], int(q.rate))
-                fw.write(strrec)
+    value = []
+    for q in session.query(Record.name, Record.iid, Record.rate).filter(and_(Record.rate!=None, Record.typ=='anime')).all():
+        value.append([q.name, q.iid, int(q.rate)])
+    table = pd.DataFrame(value, columns=['username','itemid','rate'])
+    table.to_hdf("Data/input.bin",key="user_item_rate",mode='w')
 
 ###
 # Test if valid
 def test():
-    import struct
-    cnt=0;
-    with open("../Data/input.bin","rb") as fr:
-        fr.seek(8)
-        while True:
-            strrec = fr.read(10)
-            if not strrec: break;
-            else: cnt+=1
+    table = pd.read_hdf("Data/input.bin", "user_item_rate")
+    cnt = table.shape[0]
 
     from sqlalchemy import and_
     cnt2 = int(session.query(Record).filter(and_(Record.rate!=None,
