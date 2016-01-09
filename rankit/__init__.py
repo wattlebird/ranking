@@ -1,4 +1,1 @@
-from ColleyRank import ColleyRank
-from BaseRank import BaseRank
-
-__all__ = ['ColleyRank', 'BaseRank']
+__version__ = '0.0.1'
