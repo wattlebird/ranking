@@ -3,7 +3,7 @@ import numpy as np
 cimport numpy as np
 ctypedef np.int32_t INDEXTYPE_t
 ctypedef np.float32_t RATETYPE_t
-from libc.math import log
+from libc.math cimport log
 cimport cython
 
 @cython.boundscheck(False)
