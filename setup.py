@@ -8,7 +8,11 @@ ext_modules=[
               sources=["example/util.pyx"],
               include_dirs=[numpy.get_include()],
               libraries=["m"] # Unix-like specific
-    )
+    ),
+    Extension("rankit/util/fast_converter",
+              sources = ["rankit/util/fast_converter.pyx"],
+              include_dirs=[numpy.get_include()],
+              libraries=["m"])
 ]
 
 setup(

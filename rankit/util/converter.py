@@ -1,5 +1,7 @@
 import pandas as pd
 import numpy as np
+from fast_converter import fast_colley_matrix_build, fast_colley_vector_build,\
+fast_point_diff_vote_matrix_build
 
 
 class Converter(object):
@@ -13,14 +15,15 @@ class Converter(object):
         table = pd.read_hdf(filename, "item_pair_rate")
         self.table = table[['primary','secondary','rate1','rate2','weight']]
         # itemid to index table
-        idx = self._extract_list(self.table, self.filetype)
+        idx = self._extract_list(self.table)
         self.itemlist = idx
         temptable = table.iloc[:,:2].values
         pair = np.fromfunction(np.vectorize(lambda i, j: idx[temptable[i,j]]),
-                        temptable.shape, dtype=np.int32)
+                        temptable.shape)
+        pair = np.require(pair, dtype=np.int32)
         self.pair = pair
 
-    def _extract_list(self, table, filetype):
+    def _extract_list(self, table):
         iid = np.hstack([table.loc[:,'primary'].values,
               table.loc[:,'secondary'].values])
         iid = np.unique(iid)
@@ -38,7 +41,9 @@ class Converter(object):
         C = np.zeros((icnt, icnt), dtype=np.float32)
         pair = self.pair
 
-        fast_colley_matrix_build(pair, table.iloc[:,2:].values, C)
+        fast_colley_matrix_build(pair,
+                        np.require(table.iloc[:,2:].values, dtype=np.float32),
+                        C)
 
         return C
 
@@ -51,7 +56,9 @@ class Converter(object):
         b = np.zeros(icnt, dtype=np.float32)
         pair = self.pair
 
-        fast_colley_vector_build(pair, table.iloc[:,2:].values, b)
+        fast_colley_vector_build(pair,
+                        np.require(table.iloc[:,2:].values, dtype=np.float32),
+                        b)
 
         return b
 
@@ -67,7 +74,9 @@ class Converter(object):
         D = np.zeros((icnt, icnt), dtype=np.float32)
         pair = self.pair
 
-        fast_point_diff_vote_matrix_build(pair, table.iloc[:,2:].values, D)
+        fast_point_diff_vote_matrix_build(pair,
+                        np.require(table.iloc[:,2:].values, dtype=np.float32),
+                        D)
 
         return D
 
