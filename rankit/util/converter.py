@@ -1,7 +1,9 @@
 import pandas as pd
 import numpy as np
 from fast_converter import fast_colley_matrix_build, fast_colley_vector_build,\
-fast_point_diff_vote_matrix_build
+fast_rate_diff_vote_matrix_build, fast_simple_diff_vote_matrix_build, \
+fast_rate_vote_matrix_build
+from scipy.sparse import coo_matrix, csr_matrix
 
 
 class Converter(object):
@@ -31,6 +33,16 @@ class Converter(object):
         self.iid = iid
         item_id = dict(zip(iid, range(iid.shape[0])))
         return item_id
+
+    def ItemList(self):
+        table = self.itemlist
+        itemlist =  pd.DataFrame({'itemid': table.keys(),
+                             'index': table.values()},
+                            columns=['itemid', 'index'])
+        itemlist.sort_values(by='index',inplace=True)
+        return pd.DataFrame(itemlist.values,
+                            index = pd.Index(range(itemlist.shape[0])),
+                            columns=['itemid', 'index'])
 
     def ColleyMatrix(self):
         idx = self.itemlist
@@ -63,7 +75,7 @@ class Converter(object):
         return b
 
 
-    def PointDifferenceVoteMatrix(self):
+    def RateDifferenceVoteMatrix(self):
         """This function outputs only Point Difference Matrix.
         """
         idx = self.itemlist
@@ -74,18 +86,80 @@ class Converter(object):
         D = np.zeros((icnt, icnt), dtype=np.float32)
         pair = self.pair
 
-        fast_point_diff_vote_matrix_build(pair,
+        fast_rate_diff_vote_matrix_build(pair,
                         np.require(table.iloc[:,2:].values, dtype=np.float32),
                         D)
 
         return D
 
+    def SimpleDifferenceVoteMatrix(self):
+        """This function outputs only Simple Difference Vote Matrix.
+        """
+        idx = self.itemlist
+        table = self.table
+
+        icnt = len(idx)
+        # allocate space for computing
+        D = np.zeros((icnt, icnt), dtype=np.float32)
+        pair = self.pair
+
+        fast_simple_diff_vote_matrix_build(pair,
+                        np.require(table.iloc[:,2:].values, dtype=np.float32),
+                        D)
+
+        return D
+
+    def RateVoteMatrix(self):
+        """This function outputs only Simple Difference Vote Matrix.
+        """
+        idx = self.itemlist
+        table = self.table
+
+        icnt = len(idx)
+        # allocate space for computing
+        D = np.zeros((icnt, icnt), dtype=np.float32)
+        pair = self.pair
+
+        fast_rate_vote_matrix_build(pair,
+                        np.require(table.iloc[:,2:].values, dtype=np.float32),
+                        D)
+
+        return D
+
+
     def MasseyMatrix(self):
         """This function produces X'WX
         """
-        pass
+        idx = self.itemlist
+        table = self.table
+        pair = self.pair
+        j = np.ravel(pair)
+        i = np.repeat(np.arange(table.shape[0], dtype=np.int32), 2, axis=0)
+        data = np.array([[1,-1]],dtype=np.float32)
+        data = np.ravel(np.repeat(data, table.shape[0], axis=0))
+        X = coo_matrix((data, (i, j)), shape=(table.shape[0], len(idx)))
+        X = X.tocsr()
+        W = np.require(table.iloc[:,4].values, np.float32)
+        W = coo_matrix((W, (np.arange(W.shape[0]), np.arange(W.shape[0])))).tocsr()
+        return (X.T*W*X).todense()
+
 
     def MasseyVector(self):
         """This function produces X'Wy
         """
-        pass
+        idx = self.itemlist
+        table = self.table
+        pair = self.pair
+        j = np.ravel(pair)
+        i = np.repeat(np.arange(table.shape[0], dtype=np.int32), 2, axis=0)
+        data = np.array([[1,-1]],dtype=np.float32)
+        data = np.ravel(np.repeat(data, table.shape[0], axis=0))
+        X = coo_matrix((data, (i, j)), shape=(table.shape[0], len(idx)))
+        X = X.tocsr()
+        W = np.require(table.iloc[:,4].values, np.float32)
+        y = table.iloc[:, 2].values - table.iloc[:, 3].values;
+        Wy=np.multiply(W, y)
+        return X.T*Wy
+
+    def DataDifferenceMatrix(self):
+        return self.RateDifferenceVoteMatrix().T

@@ -10,6 +10,7 @@ class BaseRank(object):
         """
         if itemlist is None:
             raise KeyError("There should be a solid item list for a rank task.")
+        # The proper behaviour is to check if index is ascending.
         self.itemlist = itemlist
 
     def rank(self, rate):

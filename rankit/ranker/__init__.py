@@ -1,4 +1,4 @@
 from BaseRank import BaseRank
-from ColleyRank import ColleyRank
+from ColleyRank import ColleyRank, MasseyRank
 
-__all__ = ['BaseRank', 'ColleyRank']
+__all__ = ['BaseRank', 'ColleyRank', 'MasseyRank']

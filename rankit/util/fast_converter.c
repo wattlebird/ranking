@@ -1171,12 +1171,14 @@ static char __pyx_k_RuntimeError[] = "RuntimeError";
 static char __pyx_k_fast_colley_matrix_build[] = "fast_colley_matrix_build";
 static char __pyx_k_fast_colley_vector_build[] = "fast_colley_vector_build";
 static char __pyx_k_rankit_util_fast_converter[] = "rankit.util.fast_converter";
+static char __pyx_k_fast_rate_vote_matrix_build[] = "fast_rate_vote_matrix_build";
 static char __pyx_k_ndarray_is_not_C_contiguous[] = "ndarray is not C contiguous";
 static char __pyx_k_home_ike_Projects_ranking_ranki[] = "/home/ike/Projects/ranking/rankit/util/fast_converter.pyx";
 static char __pyx_k_unknown_dtype_code_in_numpy_pxd[] = "unknown dtype code in numpy.pxd (%d)";
 static char __pyx_k_Format_string_allocated_too_shor[] = "Format string allocated too short, see comment in numpy.pxd";
 static char __pyx_k_Non_native_byte_order_not_suppor[] = "Non-native byte order not supported";
-static char __pyx_k_fast_point_diff_vote_matrix_buil[] = "fast_point_diff_vote_matrix_build";
+static char __pyx_k_fast_rate_diff_vote_matrix_build[] = "fast_rate_diff_vote_matrix_build";
+static char __pyx_k_fast_simple_diff_vote_matrix_bui[] = "fast_simple_diff_vote_matrix_build";
 static char __pyx_k_ndarray_is_not_Fortran_contiguou[] = "ndarray is not Fortran contiguous";
 static char __pyx_k_Format_string_allocated_too_shor_2[] = "Format string allocated too short.";
 static PyObject *__pyx_n_s_C;
@@ -1192,7 +1194,9 @@ static PyObject *__pyx_n_s_dtype;
 static PyObject *__pyx_n_s_empty;
 static PyObject *__pyx_n_s_fast_colley_matrix_build;
 static PyObject *__pyx_n_s_fast_colley_vector_build;
-static PyObject *__pyx_n_s_fast_point_diff_vote_matrix_buil;
+static PyObject *__pyx_n_s_fast_rate_diff_vote_matrix_build;
+static PyObject *__pyx_n_s_fast_rate_vote_matrix_build;
+static PyObject *__pyx_n_s_fast_simple_diff_vote_matrix_bui;
 static PyObject *__pyx_n_s_float32;
 static PyObject *__pyx_kp_s_home_ike_Projects_ranking_ranki;
 static PyObject *__pyx_n_s_i;
@@ -1215,7 +1219,9 @@ static PyObject *__pyx_kp_u_unknown_dtype_code_in_numpy_pxd;
 static PyObject *__pyx_n_s_xrange;
 static PyObject *__pyx_pf_6rankit_4util_14fast_converter_fast_colley_matrix_build(CYTHON_UNUSED PyObject *__pyx_self, PyArrayObject *__pyx_v_pair, PyArrayObject *__pyx_v_rate, PyArrayObject *__pyx_v_C); /* proto */
 static PyObject *__pyx_pf_6rankit_4util_14fast_converter_2fast_colley_vector_build(CYTHON_UNUSED PyObject *__pyx_self, PyArrayObject *__pyx_v_pair, PyArrayObject *__pyx_v_rate, PyArrayObject *__pyx_v_b); /* proto */
-static PyObject *__pyx_pf_6rankit_4util_14fast_converter_4fast_point_diff_vote_matrix_build(CYTHON_UNUSED PyObject *__pyx_self, PyArrayObject *__pyx_v_pair, PyArrayObject *__pyx_v_rate, PyArrayObject *__pyx_v_D); /* proto */
+static PyObject *__pyx_pf_6rankit_4util_14fast_converter_4fast_rate_diff_vote_matrix_build(CYTHON_UNUSED PyObject *__pyx_self, PyArrayObject *__pyx_v_pair, PyArrayObject *__pyx_v_rate, PyArrayObject *__pyx_v_D); /* proto */
+static PyObject *__pyx_pf_6rankit_4util_14fast_converter_6fast_simple_diff_vote_matrix_build(CYTHON_UNUSED PyObject *__pyx_self, PyArrayObject *__pyx_v_pair, PyArrayObject *__pyx_v_rate, PyArrayObject *__pyx_v_D); /* proto */
+static PyObject *__pyx_pf_6rankit_4util_14fast_converter_8fast_rate_vote_matrix_build(CYTHON_UNUSED PyObject *__pyx_self, PyArrayObject *__pyx_v_pair, PyArrayObject *__pyx_v_rate, PyArrayObject *__pyx_v_D); /* proto */
 static int __pyx_pf_5numpy_7ndarray___getbuffer__(PyArrayObject *__pyx_v_self, Py_buffer *__pyx_v_info, int __pyx_v_flags); /* proto */
 static void __pyx_pf_5numpy_7ndarray_2__releasebuffer__(PyArrayObject *__pyx_v_self, Py_buffer *__pyx_v_info); /* proto */
 static PyObject *__pyx_int_0;
@@ -1230,9 +1236,13 @@ static PyObject *__pyx_tuple__6;
 static PyObject *__pyx_tuple__7;
 static PyObject *__pyx_tuple__9;
 static PyObject *__pyx_tuple__11;
+static PyObject *__pyx_tuple__13;
+static PyObject *__pyx_tuple__15;
 static PyObject *__pyx_codeobj__8;
 static PyObject *__pyx_codeobj__10;
 static PyObject *__pyx_codeobj__12;
+static PyObject *__pyx_codeobj__14;
+static PyObject *__pyx_codeobj__16;
 
 /* "rankit/util/fast_converter.pyx":9
  * @cython.boundscheck(False)
@@ -1994,15 +2004,15 @@ static PyObject *__pyx_pf_6rankit_4util_14fast_converter_2fast_colley_vector_bui
 /* "rankit/util/fast_converter.pyx":44
  * @cython.boundscheck(False)
  * @cython.wraparound(False)
- * def fast_point_diff_vote_matrix_build(np.ndarray[np.int32_t, ndim=2] pair,             # <<<<<<<<<<<<<<
+ * def fast_rate_diff_vote_matrix_build(np.ndarray[np.int32_t, ndim=2] pair,             # <<<<<<<<<<<<<<
  *                              np.ndarray[np.float32_t, ndim=2] rate,
  *                              np.ndarray[np.float32_t, ndim=2] D):
  */
 
 /* Python wrapper */
-static PyObject *__pyx_pw_6rankit_4util_14fast_converter_5fast_point_diff_vote_matrix_build(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
-static PyMethodDef __pyx_mdef_6rankit_4util_14fast_converter_5fast_point_diff_vote_matrix_build = {"fast_point_diff_vote_matrix_build", (PyCFunction)__pyx_pw_6rankit_4util_14fast_converter_5fast_point_diff_vote_matrix_build, METH_VARARGS|METH_KEYWORDS, 0};
-static PyObject *__pyx_pw_6rankit_4util_14fast_converter_5fast_point_diff_vote_matrix_build(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
+static PyObject *__pyx_pw_6rankit_4util_14fast_converter_5fast_rate_diff_vote_matrix_build(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
+static PyMethodDef __pyx_mdef_6rankit_4util_14fast_converter_5fast_rate_diff_vote_matrix_build = {"fast_rate_diff_vote_matrix_build", (PyCFunction)__pyx_pw_6rankit_4util_14fast_converter_5fast_rate_diff_vote_matrix_build, METH_VARARGS|METH_KEYWORDS, 0};
+static PyObject *__pyx_pw_6rankit_4util_14fast_converter_5fast_rate_diff_vote_matrix_build(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
   PyArrayObject *__pyx_v_pair = 0;
   PyArrayObject *__pyx_v_rate = 0;
   PyArrayObject *__pyx_v_D = 0;
@@ -2011,7 +2021,7 @@ static PyObject *__pyx_pw_6rankit_4util_14fast_converter_5fast_point_diff_vote_m
   int __pyx_clineno = 0;
   PyObject *__pyx_r = 0;
   __Pyx_RefNannyDeclarations
-  __Pyx_RefNannySetupContext("fast_point_diff_vote_matrix_build (wrapper)", 0);
+  __Pyx_RefNannySetupContext("fast_rate_diff_vote_matrix_build (wrapper)", 0);
   {
     static PyObject **__pyx_pyargnames[] = {&__pyx_n_s_pair,&__pyx_n_s_rate,&__pyx_n_s_D,0};
     PyObject* values[3] = {0,0,0};
@@ -2033,16 +2043,16 @@ static PyObject *__pyx_pw_6rankit_4util_14fast_converter_5fast_point_diff_vote_m
         case  1:
         if (likely((values[1] = PyDict_GetItem(__pyx_kwds, __pyx_n_s_rate)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("fast_point_diff_vote_matrix_build", 1, 3, 3, 1); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 44; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
+          __Pyx_RaiseArgtupleInvalid("fast_rate_diff_vote_matrix_build", 1, 3, 3, 1); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 44; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
         }
         case  2:
         if (likely((values[2] = PyDict_GetItem(__pyx_kwds, __pyx_n_s_D)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("fast_point_diff_vote_matrix_build", 1, 3, 3, 2); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 44; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
+          __Pyx_RaiseArgtupleInvalid("fast_rate_diff_vote_matrix_build", 1, 3, 3, 2); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 44; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
         }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "fast_point_diff_vote_matrix_build") < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 44; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "fast_rate_diff_vote_matrix_build") < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 44; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
       }
     } else if (PyTuple_GET_SIZE(__pyx_args) != 3) {
       goto __pyx_L5_argtuple_error;
@@ -2057,16 +2067,16 @@ static PyObject *__pyx_pw_6rankit_4util_14fast_converter_5fast_point_diff_vote_m
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("fast_point_diff_vote_matrix_build", 1, 3, 3, PyTuple_GET_SIZE(__pyx_args)); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 44; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
+  __Pyx_RaiseArgtupleInvalid("fast_rate_diff_vote_matrix_build", 1, 3, 3, PyTuple_GET_SIZE(__pyx_args)); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 44; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
   __pyx_L3_error:;
-  __Pyx_AddTraceback("rankit.util.fast_converter.fast_point_diff_vote_matrix_build", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("rankit.util.fast_converter.fast_rate_diff_vote_matrix_build", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
   return NULL;
   __pyx_L4_argument_unpacking_done:;
   if (unlikely(!__Pyx_ArgTypeTest(((PyObject *)__pyx_v_pair), __pyx_ptype_5numpy_ndarray, 1, "pair", 0))) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 44; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   if (unlikely(!__Pyx_ArgTypeTest(((PyObject *)__pyx_v_rate), __pyx_ptype_5numpy_ndarray, 1, "rate", 0))) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 45; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   if (unlikely(!__Pyx_ArgTypeTest(((PyObject *)__pyx_v_D), __pyx_ptype_5numpy_ndarray, 1, "D", 0))) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 46; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __pyx_r = __pyx_pf_6rankit_4util_14fast_converter_4fast_point_diff_vote_matrix_build(__pyx_self, __pyx_v_pair, __pyx_v_rate, __pyx_v_D);
+  __pyx_r = __pyx_pf_6rankit_4util_14fast_converter_4fast_rate_diff_vote_matrix_build(__pyx_self, __pyx_v_pair, __pyx_v_rate, __pyx_v_D);
 
   /* function exit code */
   goto __pyx_L0;
@@ -2077,7 +2087,7 @@ static PyObject *__pyx_pw_6rankit_4util_14fast_converter_5fast_point_diff_vote_m
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_6rankit_4util_14fast_converter_4fast_point_diff_vote_matrix_build(CYTHON_UNUSED PyObject *__pyx_self, PyArrayObject *__pyx_v_pair, PyArrayObject *__pyx_v_rate, PyArrayObject *__pyx_v_D) {
+static PyObject *__pyx_pf_6rankit_4util_14fast_converter_4fast_rate_diff_vote_matrix_build(CYTHON_UNUSED PyObject *__pyx_self, PyArrayObject *__pyx_v_pair, PyArrayObject *__pyx_v_rate, PyArrayObject *__pyx_v_D) {
   unsigned int __pyx_v_i1;
   unsigned int __pyx_v_i2;
   unsigned int __pyx_v_i;
@@ -2115,7 +2125,7 @@ static PyObject *__pyx_pf_6rankit_4util_14fast_converter_4fast_point_diff_vote_m
   int __pyx_lineno = 0;
   const char *__pyx_filename = NULL;
   int __pyx_clineno = 0;
-  __Pyx_RefNannySetupContext("fast_point_diff_vote_matrix_build", 0);
+  __Pyx_RefNannySetupContext("fast_rate_diff_vote_matrix_build", 0);
   __pyx_pybuffer_pair.pybuffer.buf = NULL;
   __pyx_pybuffer_pair.refcount = 0;
   __pyx_pybuffernd_pair.data = NULL;
@@ -2171,7 +2181,7 @@ static PyObject *__pyx_pf_6rankit_4util_14fast_converter_4fast_point_diff_vote_m
  *         i1 = <unsigned int>(pair[i, 0])
  *         i2 = <unsigned int>(pair[i, 1])             # <<<<<<<<<<<<<<
  *         if rate[i, 0]>rate[i, 1]:
- *             D[i2, i1] = rate[i, 0]-rate[i, 1]
+ *             D[i2, i1] += rate[i, 0]-rate[i, 1]
  */
     __pyx_t_5 = __pyx_v_i;
     __pyx_t_6 = 1;
@@ -2181,7 +2191,7 @@ static PyObject *__pyx_pf_6rankit_4util_14fast_converter_4fast_point_diff_vote_m
  *         i1 = <unsigned int>(pair[i, 0])
  *         i2 = <unsigned int>(pair[i, 1])
  *         if rate[i, 0]>rate[i, 1]:             # <<<<<<<<<<<<<<
- *             D[i2, i1] = rate[i, 0]-rate[i, 1]
+ *             D[i2, i1] += rate[i, 0]-rate[i, 1]
  *         else:
  */
     __pyx_t_7 = __pyx_v_i;
@@ -2194,9 +2204,9 @@ static PyObject *__pyx_pf_6rankit_4util_14fast_converter_4fast_point_diff_vote_m
       /* "rankit/util/fast_converter.pyx":52
  *         i2 = <unsigned int>(pair[i, 1])
  *         if rate[i, 0]>rate[i, 1]:
- *             D[i2, i1] = rate[i, 0]-rate[i, 1]             # <<<<<<<<<<<<<<
+ *             D[i2, i1] += rate[i, 0]-rate[i, 1]             # <<<<<<<<<<<<<<
  *         else:
- *             D[i1, i2] = rate[i, 1]-rate[i, 0]
+ *             D[i1, i2] += rate[i, 1]-rate[i, 0]
  */
       __pyx_t_12 = __pyx_v_i;
       __pyx_t_13 = 0;
@@ -2204,22 +2214,24 @@ static PyObject *__pyx_pf_6rankit_4util_14fast_converter_4fast_point_diff_vote_m
       __pyx_t_15 = 1;
       __pyx_t_16 = __pyx_v_i2;
       __pyx_t_17 = __pyx_v_i1;
-      *__Pyx_BufPtrStrided2d(__pyx_t_5numpy_float32_t *, __pyx_pybuffernd_D.rcbuffer->pybuffer.buf, __pyx_t_16, __pyx_pybuffernd_D.diminfo[0].strides, __pyx_t_17, __pyx_pybuffernd_D.diminfo[1].strides) = ((*__Pyx_BufPtrStrided2d(__pyx_t_5numpy_float32_t *, __pyx_pybuffernd_rate.rcbuffer->pybuffer.buf, __pyx_t_12, __pyx_pybuffernd_rate.diminfo[0].strides, __pyx_t_13, __pyx_pybuffernd_rate.diminfo[1].strides)) - (*__Pyx_BufPtrStrided2d(__pyx_t_5numpy_float32_t *, __pyx_pybuffernd_rate.rcbuffer->pybuffer.buf, __pyx_t_14, __pyx_pybuffernd_rate.diminfo[0].strides, __pyx_t_15, __pyx_pybuffernd_rate.diminfo[1].strides)));
+      *__Pyx_BufPtrStrided2d(__pyx_t_5numpy_float32_t *, __pyx_pybuffernd_D.rcbuffer->pybuffer.buf, __pyx_t_16, __pyx_pybuffernd_D.diminfo[0].strides, __pyx_t_17, __pyx_pybuffernd_D.diminfo[1].strides) += ((*__Pyx_BufPtrStrided2d(__pyx_t_5numpy_float32_t *, __pyx_pybuffernd_rate.rcbuffer->pybuffer.buf, __pyx_t_12, __pyx_pybuffernd_rate.diminfo[0].strides, __pyx_t_13, __pyx_pybuffernd_rate.diminfo[1].strides)) - (*__Pyx_BufPtrStrided2d(__pyx_t_5numpy_float32_t *, __pyx_pybuffernd_rate.rcbuffer->pybuffer.buf, __pyx_t_14, __pyx_pybuffernd_rate.diminfo[0].strides, __pyx_t_15, __pyx_pybuffernd_rate.diminfo[1].strides)));
 
       /* "rankit/util/fast_converter.pyx":51
  *         i1 = <unsigned int>(pair[i, 0])
  *         i2 = <unsigned int>(pair[i, 1])
  *         if rate[i, 0]>rate[i, 1]:             # <<<<<<<<<<<<<<
- *             D[i2, i1] = rate[i, 0]-rate[i, 1]
+ *             D[i2, i1] += rate[i, 0]-rate[i, 1]
  *         else:
  */
       goto __pyx_L5;
     }
 
     /* "rankit/util/fast_converter.pyx":54
- *             D[i2, i1] = rate[i, 0]-rate[i, 1]
+ *             D[i2, i1] += rate[i, 0]-rate[i, 1]
  *         else:
- *             D[i1, i2] = rate[i, 1]-rate[i, 0]             # <<<<<<<<<<<<<<
+ *             D[i1, i2] += rate[i, 1]-rate[i, 0]             # <<<<<<<<<<<<<<
+ * 
+ * @cython.boundscheck(False)
  */
     /*else*/ {
       __pyx_t_18 = __pyx_v_i;
@@ -2228,7 +2240,7 @@ static PyObject *__pyx_pf_6rankit_4util_14fast_converter_4fast_point_diff_vote_m
       __pyx_t_21 = 0;
       __pyx_t_22 = __pyx_v_i1;
       __pyx_t_23 = __pyx_v_i2;
-      *__Pyx_BufPtrStrided2d(__pyx_t_5numpy_float32_t *, __pyx_pybuffernd_D.rcbuffer->pybuffer.buf, __pyx_t_22, __pyx_pybuffernd_D.diminfo[0].strides, __pyx_t_23, __pyx_pybuffernd_D.diminfo[1].strides) = ((*__Pyx_BufPtrStrided2d(__pyx_t_5numpy_float32_t *, __pyx_pybuffernd_rate.rcbuffer->pybuffer.buf, __pyx_t_18, __pyx_pybuffernd_rate.diminfo[0].strides, __pyx_t_19, __pyx_pybuffernd_rate.diminfo[1].strides)) - (*__Pyx_BufPtrStrided2d(__pyx_t_5numpy_float32_t *, __pyx_pybuffernd_rate.rcbuffer->pybuffer.buf, __pyx_t_20, __pyx_pybuffernd_rate.diminfo[0].strides, __pyx_t_21, __pyx_pybuffernd_rate.diminfo[1].strides)));
+      *__Pyx_BufPtrStrided2d(__pyx_t_5numpy_float32_t *, __pyx_pybuffernd_D.rcbuffer->pybuffer.buf, __pyx_t_22, __pyx_pybuffernd_D.diminfo[0].strides, __pyx_t_23, __pyx_pybuffernd_D.diminfo[1].strides) += ((*__Pyx_BufPtrStrided2d(__pyx_t_5numpy_float32_t *, __pyx_pybuffernd_rate.rcbuffer->pybuffer.buf, __pyx_t_18, __pyx_pybuffernd_rate.diminfo[0].strides, __pyx_t_19, __pyx_pybuffernd_rate.diminfo[1].strides)) - (*__Pyx_BufPtrStrided2d(__pyx_t_5numpy_float32_t *, __pyx_pybuffernd_rate.rcbuffer->pybuffer.buf, __pyx_t_20, __pyx_pybuffernd_rate.diminfo[0].strides, __pyx_t_21, __pyx_pybuffernd_rate.diminfo[1].strides)));
     }
     __pyx_L5:;
   }
@@ -2236,7 +2248,7 @@ static PyObject *__pyx_pf_6rankit_4util_14fast_converter_4fast_point_diff_vote_m
   /* "rankit/util/fast_converter.pyx":44
  * @cython.boundscheck(False)
  * @cython.wraparound(False)
- * def fast_point_diff_vote_matrix_build(np.ndarray[np.int32_t, ndim=2] pair,             # <<<<<<<<<<<<<<
+ * def fast_rate_diff_vote_matrix_build(np.ndarray[np.int32_t, ndim=2] pair,             # <<<<<<<<<<<<<<
  *                              np.ndarray[np.float32_t, ndim=2] rate,
  *                              np.ndarray[np.float32_t, ndim=2] D):
  */
@@ -2251,7 +2263,498 @@ static PyObject *__pyx_pf_6rankit_4util_14fast_converter_4fast_point_diff_vote_m
     __Pyx_SafeReleaseBuffer(&__pyx_pybuffernd_pair.rcbuffer->pybuffer);
     __Pyx_SafeReleaseBuffer(&__pyx_pybuffernd_rate.rcbuffer->pybuffer);
   __Pyx_ErrRestore(__pyx_type, __pyx_value, __pyx_tb);}
-  __Pyx_AddTraceback("rankit.util.fast_converter.fast_point_diff_vote_matrix_build", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("rankit.util.fast_converter.fast_rate_diff_vote_matrix_build", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __pyx_r = NULL;
+  goto __pyx_L2;
+  __pyx_L0:;
+  __Pyx_SafeReleaseBuffer(&__pyx_pybuffernd_D.rcbuffer->pybuffer);
+  __Pyx_SafeReleaseBuffer(&__pyx_pybuffernd_pair.rcbuffer->pybuffer);
+  __Pyx_SafeReleaseBuffer(&__pyx_pybuffernd_rate.rcbuffer->pybuffer);
+  __pyx_L2:;
+  __Pyx_XGIVEREF(__pyx_r);
+  __Pyx_RefNannyFinishContext();
+  return __pyx_r;
+}
+
+/* "rankit/util/fast_converter.pyx":58
+ * @cython.boundscheck(False)
+ * @cython.wraparound(False)
+ * def fast_simple_diff_vote_matrix_build(np.ndarray[np.int32_t, ndim=2] pair,             # <<<<<<<<<<<<<<
+ *                              np.ndarray[np.float32_t, ndim=2] rate,
+ *                              np.ndarray[np.float32_t, ndim=2] D):
+ */
+
+/* Python wrapper */
+static PyObject *__pyx_pw_6rankit_4util_14fast_converter_7fast_simple_diff_vote_matrix_build(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
+static PyMethodDef __pyx_mdef_6rankit_4util_14fast_converter_7fast_simple_diff_vote_matrix_build = {"fast_simple_diff_vote_matrix_build", (PyCFunction)__pyx_pw_6rankit_4util_14fast_converter_7fast_simple_diff_vote_matrix_build, METH_VARARGS|METH_KEYWORDS, 0};
+static PyObject *__pyx_pw_6rankit_4util_14fast_converter_7fast_simple_diff_vote_matrix_build(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
+  PyArrayObject *__pyx_v_pair = 0;
+  PyArrayObject *__pyx_v_rate = 0;
+  PyArrayObject *__pyx_v_D = 0;
+  int __pyx_lineno = 0;
+  const char *__pyx_filename = NULL;
+  int __pyx_clineno = 0;
+  PyObject *__pyx_r = 0;
+  __Pyx_RefNannyDeclarations
+  __Pyx_RefNannySetupContext("fast_simple_diff_vote_matrix_build (wrapper)", 0);
+  {
+    static PyObject **__pyx_pyargnames[] = {&__pyx_n_s_pair,&__pyx_n_s_rate,&__pyx_n_s_D,0};
+    PyObject* values[3] = {0,0,0};
+    if (unlikely(__pyx_kwds)) {
+      Py_ssize_t kw_args;
+      const Py_ssize_t pos_args = PyTuple_GET_SIZE(__pyx_args);
+      switch (pos_args) {
+        case  3: values[2] = PyTuple_GET_ITEM(__pyx_args, 2);
+        case  2: values[1] = PyTuple_GET_ITEM(__pyx_args, 1);
+        case  1: values[0] = PyTuple_GET_ITEM(__pyx_args, 0);
+        case  0: break;
+        default: goto __pyx_L5_argtuple_error;
+      }
+      kw_args = PyDict_Size(__pyx_kwds);
+      switch (pos_args) {
+        case  0:
+        if (likely((values[0] = PyDict_GetItem(__pyx_kwds, __pyx_n_s_pair)) != 0)) kw_args--;
+        else goto __pyx_L5_argtuple_error;
+        case  1:
+        if (likely((values[1] = PyDict_GetItem(__pyx_kwds, __pyx_n_s_rate)) != 0)) kw_args--;
+        else {
+          __Pyx_RaiseArgtupleInvalid("fast_simple_diff_vote_matrix_build", 1, 3, 3, 1); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 58; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
+        }
+        case  2:
+        if (likely((values[2] = PyDict_GetItem(__pyx_kwds, __pyx_n_s_D)) != 0)) kw_args--;
+        else {
+          __Pyx_RaiseArgtupleInvalid("fast_simple_diff_vote_matrix_build", 1, 3, 3, 2); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 58; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
+        }
+      }
+      if (unlikely(kw_args > 0)) {
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "fast_simple_diff_vote_matrix_build") < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 58; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
+      }
+    } else if (PyTuple_GET_SIZE(__pyx_args) != 3) {
+      goto __pyx_L5_argtuple_error;
+    } else {
+      values[0] = PyTuple_GET_ITEM(__pyx_args, 0);
+      values[1] = PyTuple_GET_ITEM(__pyx_args, 1);
+      values[2] = PyTuple_GET_ITEM(__pyx_args, 2);
+    }
+    __pyx_v_pair = ((PyArrayObject *)values[0]);
+    __pyx_v_rate = ((PyArrayObject *)values[1]);
+    __pyx_v_D = ((PyArrayObject *)values[2]);
+  }
+  goto __pyx_L4_argument_unpacking_done;
+  __pyx_L5_argtuple_error:;
+  __Pyx_RaiseArgtupleInvalid("fast_simple_diff_vote_matrix_build", 1, 3, 3, PyTuple_GET_SIZE(__pyx_args)); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 58; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
+  __pyx_L3_error:;
+  __Pyx_AddTraceback("rankit.util.fast_converter.fast_simple_diff_vote_matrix_build", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_RefNannyFinishContext();
+  return NULL;
+  __pyx_L4_argument_unpacking_done:;
+  if (unlikely(!__Pyx_ArgTypeTest(((PyObject *)__pyx_v_pair), __pyx_ptype_5numpy_ndarray, 1, "pair", 0))) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 58; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  if (unlikely(!__Pyx_ArgTypeTest(((PyObject *)__pyx_v_rate), __pyx_ptype_5numpy_ndarray, 1, "rate", 0))) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 59; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  if (unlikely(!__Pyx_ArgTypeTest(((PyObject *)__pyx_v_D), __pyx_ptype_5numpy_ndarray, 1, "D", 0))) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 60; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_r = __pyx_pf_6rankit_4util_14fast_converter_6fast_simple_diff_vote_matrix_build(__pyx_self, __pyx_v_pair, __pyx_v_rate, __pyx_v_D);
+
+  /* function exit code */
+  goto __pyx_L0;
+  __pyx_L1_error:;
+  __pyx_r = NULL;
+  __pyx_L0:;
+  __Pyx_RefNannyFinishContext();
+  return __pyx_r;
+}
+
+static PyObject *__pyx_pf_6rankit_4util_14fast_converter_6fast_simple_diff_vote_matrix_build(CYTHON_UNUSED PyObject *__pyx_self, PyArrayObject *__pyx_v_pair, PyArrayObject *__pyx_v_rate, PyArrayObject *__pyx_v_D) {
+  unsigned int __pyx_v_i1;
+  unsigned int __pyx_v_i2;
+  unsigned int __pyx_v_i;
+  __Pyx_LocalBuf_ND __pyx_pybuffernd_D;
+  __Pyx_Buffer __pyx_pybuffer_D;
+  __Pyx_LocalBuf_ND __pyx_pybuffernd_pair;
+  __Pyx_Buffer __pyx_pybuffer_pair;
+  __Pyx_LocalBuf_ND __pyx_pybuffernd_rate;
+  __Pyx_Buffer __pyx_pybuffer_rate;
+  PyObject *__pyx_r = NULL;
+  __Pyx_RefNannyDeclarations
+  npy_intp __pyx_t_1;
+  unsigned int __pyx_t_2;
+  size_t __pyx_t_3;
+  Py_ssize_t __pyx_t_4;
+  size_t __pyx_t_5;
+  Py_ssize_t __pyx_t_6;
+  size_t __pyx_t_7;
+  Py_ssize_t __pyx_t_8;
+  size_t __pyx_t_9;
+  Py_ssize_t __pyx_t_10;
+  int __pyx_t_11;
+  size_t __pyx_t_12;
+  size_t __pyx_t_13;
+  size_t __pyx_t_14;
+  size_t __pyx_t_15;
+  int __pyx_lineno = 0;
+  const char *__pyx_filename = NULL;
+  int __pyx_clineno = 0;
+  __Pyx_RefNannySetupContext("fast_simple_diff_vote_matrix_build", 0);
+  __pyx_pybuffer_pair.pybuffer.buf = NULL;
+  __pyx_pybuffer_pair.refcount = 0;
+  __pyx_pybuffernd_pair.data = NULL;
+  __pyx_pybuffernd_pair.rcbuffer = &__pyx_pybuffer_pair;
+  __pyx_pybuffer_rate.pybuffer.buf = NULL;
+  __pyx_pybuffer_rate.refcount = 0;
+  __pyx_pybuffernd_rate.data = NULL;
+  __pyx_pybuffernd_rate.rcbuffer = &__pyx_pybuffer_rate;
+  __pyx_pybuffer_D.pybuffer.buf = NULL;
+  __pyx_pybuffer_D.refcount = 0;
+  __pyx_pybuffernd_D.data = NULL;
+  __pyx_pybuffernd_D.rcbuffer = &__pyx_pybuffer_D;
+  {
+    __Pyx_BufFmt_StackElem __pyx_stack[1];
+    if (unlikely(__Pyx_GetBufferAndValidate(&__pyx_pybuffernd_pair.rcbuffer->pybuffer, (PyObject*)__pyx_v_pair, &__Pyx_TypeInfo_nn___pyx_t_5numpy_int32_t, PyBUF_FORMAT| PyBUF_STRIDES, 2, 0, __pyx_stack) == -1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 58; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  }
+  __pyx_pybuffernd_pair.diminfo[0].strides = __pyx_pybuffernd_pair.rcbuffer->pybuffer.strides[0]; __pyx_pybuffernd_pair.diminfo[0].shape = __pyx_pybuffernd_pair.rcbuffer->pybuffer.shape[0]; __pyx_pybuffernd_pair.diminfo[1].strides = __pyx_pybuffernd_pair.rcbuffer->pybuffer.strides[1]; __pyx_pybuffernd_pair.diminfo[1].shape = __pyx_pybuffernd_pair.rcbuffer->pybuffer.shape[1];
+  {
+    __Pyx_BufFmt_StackElem __pyx_stack[1];
+    if (unlikely(__Pyx_GetBufferAndValidate(&__pyx_pybuffernd_rate.rcbuffer->pybuffer, (PyObject*)__pyx_v_rate, &__Pyx_TypeInfo_nn___pyx_t_5numpy_float32_t, PyBUF_FORMAT| PyBUF_STRIDES, 2, 0, __pyx_stack) == -1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 58; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  }
+  __pyx_pybuffernd_rate.diminfo[0].strides = __pyx_pybuffernd_rate.rcbuffer->pybuffer.strides[0]; __pyx_pybuffernd_rate.diminfo[0].shape = __pyx_pybuffernd_rate.rcbuffer->pybuffer.shape[0]; __pyx_pybuffernd_rate.diminfo[1].strides = __pyx_pybuffernd_rate.rcbuffer->pybuffer.strides[1]; __pyx_pybuffernd_rate.diminfo[1].shape = __pyx_pybuffernd_rate.rcbuffer->pybuffer.shape[1];
+  {
+    __Pyx_BufFmt_StackElem __pyx_stack[1];
+    if (unlikely(__Pyx_GetBufferAndValidate(&__pyx_pybuffernd_D.rcbuffer->pybuffer, (PyObject*)__pyx_v_D, &__Pyx_TypeInfo_nn___pyx_t_5numpy_float32_t, PyBUF_FORMAT| PyBUF_STRIDES| PyBUF_WRITABLE, 2, 0, __pyx_stack) == -1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 58; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  }
+  __pyx_pybuffernd_D.diminfo[0].strides = __pyx_pybuffernd_D.rcbuffer->pybuffer.strides[0]; __pyx_pybuffernd_D.diminfo[0].shape = __pyx_pybuffernd_D.rcbuffer->pybuffer.shape[0]; __pyx_pybuffernd_D.diminfo[1].strides = __pyx_pybuffernd_D.rcbuffer->pybuffer.strides[1]; __pyx_pybuffernd_D.diminfo[1].shape = __pyx_pybuffernd_D.rcbuffer->pybuffer.shape[1];
+
+  /* "rankit/util/fast_converter.pyx":62
+ *                              np.ndarray[np.float32_t, ndim=2] D):
+ *     cdef unsigned int i1, i2, i;
+ *     for i in xrange(pair.shape[0]):             # <<<<<<<<<<<<<<
+ *         i1 = <unsigned int>(pair[i, 0])
+ *         i2 = <unsigned int>(pair[i, 1])
+ */
+  __pyx_t_1 = (__pyx_v_pair->dimensions[0]);
+  for (__pyx_t_2 = 0; __pyx_t_2 < __pyx_t_1; __pyx_t_2+=1) {
+    __pyx_v_i = __pyx_t_2;
+
+    /* "rankit/util/fast_converter.pyx":63
+ *     cdef unsigned int i1, i2, i;
+ *     for i in xrange(pair.shape[0]):
+ *         i1 = <unsigned int>(pair[i, 0])             # <<<<<<<<<<<<<<
+ *         i2 = <unsigned int>(pair[i, 1])
+ *         if rate[i, 0]>rate[i, 1]:
+ */
+    __pyx_t_3 = __pyx_v_i;
+    __pyx_t_4 = 0;
+    __pyx_v_i1 = ((unsigned int)(*__Pyx_BufPtrStrided2d(__pyx_t_5numpy_int32_t *, __pyx_pybuffernd_pair.rcbuffer->pybuffer.buf, __pyx_t_3, __pyx_pybuffernd_pair.diminfo[0].strides, __pyx_t_4, __pyx_pybuffernd_pair.diminfo[1].strides)));
+
+    /* "rankit/util/fast_converter.pyx":64
+ *     for i in xrange(pair.shape[0]):
+ *         i1 = <unsigned int>(pair[i, 0])
+ *         i2 = <unsigned int>(pair[i, 1])             # <<<<<<<<<<<<<<
+ *         if rate[i, 0]>rate[i, 1]:
+ *             D[i2, i1] += 1
+ */
+    __pyx_t_5 = __pyx_v_i;
+    __pyx_t_6 = 1;
+    __pyx_v_i2 = ((unsigned int)(*__Pyx_BufPtrStrided2d(__pyx_t_5numpy_int32_t *, __pyx_pybuffernd_pair.rcbuffer->pybuffer.buf, __pyx_t_5, __pyx_pybuffernd_pair.diminfo[0].strides, __pyx_t_6, __pyx_pybuffernd_pair.diminfo[1].strides)));
+
+    /* "rankit/util/fast_converter.pyx":65
+ *         i1 = <unsigned int>(pair[i, 0])
+ *         i2 = <unsigned int>(pair[i, 1])
+ *         if rate[i, 0]>rate[i, 1]:             # <<<<<<<<<<<<<<
+ *             D[i2, i1] += 1
+ *         else:
+ */
+    __pyx_t_7 = __pyx_v_i;
+    __pyx_t_8 = 0;
+    __pyx_t_9 = __pyx_v_i;
+    __pyx_t_10 = 1;
+    __pyx_t_11 = (((*__Pyx_BufPtrStrided2d(__pyx_t_5numpy_float32_t *, __pyx_pybuffernd_rate.rcbuffer->pybuffer.buf, __pyx_t_7, __pyx_pybuffernd_rate.diminfo[0].strides, __pyx_t_8, __pyx_pybuffernd_rate.diminfo[1].strides)) > (*__Pyx_BufPtrStrided2d(__pyx_t_5numpy_float32_t *, __pyx_pybuffernd_rate.rcbuffer->pybuffer.buf, __pyx_t_9, __pyx_pybuffernd_rate.diminfo[0].strides, __pyx_t_10, __pyx_pybuffernd_rate.diminfo[1].strides))) != 0);
+    if (__pyx_t_11) {
+
+      /* "rankit/util/fast_converter.pyx":66
+ *         i2 = <unsigned int>(pair[i, 1])
+ *         if rate[i, 0]>rate[i, 1]:
+ *             D[i2, i1] += 1             # <<<<<<<<<<<<<<
+ *         else:
+ *             D[i1, i2] += 1
+ */
+      __pyx_t_12 = __pyx_v_i2;
+      __pyx_t_13 = __pyx_v_i1;
+      *__Pyx_BufPtrStrided2d(__pyx_t_5numpy_float32_t *, __pyx_pybuffernd_D.rcbuffer->pybuffer.buf, __pyx_t_12, __pyx_pybuffernd_D.diminfo[0].strides, __pyx_t_13, __pyx_pybuffernd_D.diminfo[1].strides) += 1.0;
+
+      /* "rankit/util/fast_converter.pyx":65
+ *         i1 = <unsigned int>(pair[i, 0])
+ *         i2 = <unsigned int>(pair[i, 1])
+ *         if rate[i, 0]>rate[i, 1]:             # <<<<<<<<<<<<<<
+ *             D[i2, i1] += 1
+ *         else:
+ */
+      goto __pyx_L5;
+    }
+
+    /* "rankit/util/fast_converter.pyx":68
+ *             D[i2, i1] += 1
+ *         else:
+ *             D[i1, i2] += 1             # <<<<<<<<<<<<<<
+ * 
+ * @cython.boundscheck(False)
+ */
+    /*else*/ {
+      __pyx_t_14 = __pyx_v_i1;
+      __pyx_t_15 = __pyx_v_i2;
+      *__Pyx_BufPtrStrided2d(__pyx_t_5numpy_float32_t *, __pyx_pybuffernd_D.rcbuffer->pybuffer.buf, __pyx_t_14, __pyx_pybuffernd_D.diminfo[0].strides, __pyx_t_15, __pyx_pybuffernd_D.diminfo[1].strides) += 1.0;
+    }
+    __pyx_L5:;
+  }
+
+  /* "rankit/util/fast_converter.pyx":58
+ * @cython.boundscheck(False)
+ * @cython.wraparound(False)
+ * def fast_simple_diff_vote_matrix_build(np.ndarray[np.int32_t, ndim=2] pair,             # <<<<<<<<<<<<<<
+ *                              np.ndarray[np.float32_t, ndim=2] rate,
+ *                              np.ndarray[np.float32_t, ndim=2] D):
+ */
+
+  /* function exit code */
+  __pyx_r = Py_None; __Pyx_INCREF(Py_None);
+  goto __pyx_L0;
+  __pyx_L1_error:;
+  { PyObject *__pyx_type, *__pyx_value, *__pyx_tb;
+    __Pyx_ErrFetch(&__pyx_type, &__pyx_value, &__pyx_tb);
+    __Pyx_SafeReleaseBuffer(&__pyx_pybuffernd_D.rcbuffer->pybuffer);
+    __Pyx_SafeReleaseBuffer(&__pyx_pybuffernd_pair.rcbuffer->pybuffer);
+    __Pyx_SafeReleaseBuffer(&__pyx_pybuffernd_rate.rcbuffer->pybuffer);
+  __Pyx_ErrRestore(__pyx_type, __pyx_value, __pyx_tb);}
+  __Pyx_AddTraceback("rankit.util.fast_converter.fast_simple_diff_vote_matrix_build", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __pyx_r = NULL;
+  goto __pyx_L2;
+  __pyx_L0:;
+  __Pyx_SafeReleaseBuffer(&__pyx_pybuffernd_D.rcbuffer->pybuffer);
+  __Pyx_SafeReleaseBuffer(&__pyx_pybuffernd_pair.rcbuffer->pybuffer);
+  __Pyx_SafeReleaseBuffer(&__pyx_pybuffernd_rate.rcbuffer->pybuffer);
+  __pyx_L2:;
+  __Pyx_XGIVEREF(__pyx_r);
+  __Pyx_RefNannyFinishContext();
+  return __pyx_r;
+}
+
+/* "rankit/util/fast_converter.pyx":72
+ * @cython.boundscheck(False)
+ * @cython.wraparound(False)
+ * def fast_rate_vote_matrix_build(np.ndarray[np.int32_t, ndim=2] pair,             # <<<<<<<<<<<<<<
+ *                              np.ndarray[np.float32_t, ndim=2] rate,
+ *                              np.ndarray[np.float32_t, ndim=2] D):
+ */
+
+/* Python wrapper */
+static PyObject *__pyx_pw_6rankit_4util_14fast_converter_9fast_rate_vote_matrix_build(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
+static PyMethodDef __pyx_mdef_6rankit_4util_14fast_converter_9fast_rate_vote_matrix_build = {"fast_rate_vote_matrix_build", (PyCFunction)__pyx_pw_6rankit_4util_14fast_converter_9fast_rate_vote_matrix_build, METH_VARARGS|METH_KEYWORDS, 0};
+static PyObject *__pyx_pw_6rankit_4util_14fast_converter_9fast_rate_vote_matrix_build(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
+  PyArrayObject *__pyx_v_pair = 0;
+  PyArrayObject *__pyx_v_rate = 0;
+  PyArrayObject *__pyx_v_D = 0;
+  int __pyx_lineno = 0;
+  const char *__pyx_filename = NULL;
+  int __pyx_clineno = 0;
+  PyObject *__pyx_r = 0;
+  __Pyx_RefNannyDeclarations
+  __Pyx_RefNannySetupContext("fast_rate_vote_matrix_build (wrapper)", 0);
+  {
+    static PyObject **__pyx_pyargnames[] = {&__pyx_n_s_pair,&__pyx_n_s_rate,&__pyx_n_s_D,0};
+    PyObject* values[3] = {0,0,0};
+    if (unlikely(__pyx_kwds)) {
+      Py_ssize_t kw_args;
+      const Py_ssize_t pos_args = PyTuple_GET_SIZE(__pyx_args);
+      switch (pos_args) {
+        case  3: values[2] = PyTuple_GET_ITEM(__pyx_args, 2);
+        case  2: values[1] = PyTuple_GET_ITEM(__pyx_args, 1);
+        case  1: values[0] = PyTuple_GET_ITEM(__pyx_args, 0);
+        case  0: break;
+        default: goto __pyx_L5_argtuple_error;
+      }
+      kw_args = PyDict_Size(__pyx_kwds);
+      switch (pos_args) {
+        case  0:
+        if (likely((values[0] = PyDict_GetItem(__pyx_kwds, __pyx_n_s_pair)) != 0)) kw_args--;
+        else goto __pyx_L5_argtuple_error;
+        case  1:
+        if (likely((values[1] = PyDict_GetItem(__pyx_kwds, __pyx_n_s_rate)) != 0)) kw_args--;
+        else {
+          __Pyx_RaiseArgtupleInvalid("fast_rate_vote_matrix_build", 1, 3, 3, 1); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 72; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
+        }
+        case  2:
+        if (likely((values[2] = PyDict_GetItem(__pyx_kwds, __pyx_n_s_D)) != 0)) kw_args--;
+        else {
+          __Pyx_RaiseArgtupleInvalid("fast_rate_vote_matrix_build", 1, 3, 3, 2); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 72; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
+        }
+      }
+      if (unlikely(kw_args > 0)) {
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "fast_rate_vote_matrix_build") < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 72; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
+      }
+    } else if (PyTuple_GET_SIZE(__pyx_args) != 3) {
+      goto __pyx_L5_argtuple_error;
+    } else {
+      values[0] = PyTuple_GET_ITEM(__pyx_args, 0);
+      values[1] = PyTuple_GET_ITEM(__pyx_args, 1);
+      values[2] = PyTuple_GET_ITEM(__pyx_args, 2);
+    }
+    __pyx_v_pair = ((PyArrayObject *)values[0]);
+    __pyx_v_rate = ((PyArrayObject *)values[1]);
+    __pyx_v_D = ((PyArrayObject *)values[2]);
+  }
+  goto __pyx_L4_argument_unpacking_done;
+  __pyx_L5_argtuple_error:;
+  __Pyx_RaiseArgtupleInvalid("fast_rate_vote_matrix_build", 1, 3, 3, PyTuple_GET_SIZE(__pyx_args)); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 72; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
+  __pyx_L3_error:;
+  __Pyx_AddTraceback("rankit.util.fast_converter.fast_rate_vote_matrix_build", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_RefNannyFinishContext();
+  return NULL;
+  __pyx_L4_argument_unpacking_done:;
+  if (unlikely(!__Pyx_ArgTypeTest(((PyObject *)__pyx_v_pair), __pyx_ptype_5numpy_ndarray, 1, "pair", 0))) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 72; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  if (unlikely(!__Pyx_ArgTypeTest(((PyObject *)__pyx_v_rate), __pyx_ptype_5numpy_ndarray, 1, "rate", 0))) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 73; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  if (unlikely(!__Pyx_ArgTypeTest(((PyObject *)__pyx_v_D), __pyx_ptype_5numpy_ndarray, 1, "D", 0))) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 74; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_r = __pyx_pf_6rankit_4util_14fast_converter_8fast_rate_vote_matrix_build(__pyx_self, __pyx_v_pair, __pyx_v_rate, __pyx_v_D);
+
+  /* function exit code */
+  goto __pyx_L0;
+  __pyx_L1_error:;
+  __pyx_r = NULL;
+  __pyx_L0:;
+  __Pyx_RefNannyFinishContext();
+  return __pyx_r;
+}
+
+static PyObject *__pyx_pf_6rankit_4util_14fast_converter_8fast_rate_vote_matrix_build(CYTHON_UNUSED PyObject *__pyx_self, PyArrayObject *__pyx_v_pair, PyArrayObject *__pyx_v_rate, PyArrayObject *__pyx_v_D) {
+  unsigned int __pyx_v_i1;
+  unsigned int __pyx_v_i2;
+  unsigned int __pyx_v_i;
+  __Pyx_LocalBuf_ND __pyx_pybuffernd_D;
+  __Pyx_Buffer __pyx_pybuffer_D;
+  __Pyx_LocalBuf_ND __pyx_pybuffernd_pair;
+  __Pyx_Buffer __pyx_pybuffer_pair;
+  __Pyx_LocalBuf_ND __pyx_pybuffernd_rate;
+  __Pyx_Buffer __pyx_pybuffer_rate;
+  PyObject *__pyx_r = NULL;
+  __Pyx_RefNannyDeclarations
+  npy_intp __pyx_t_1;
+  unsigned int __pyx_t_2;
+  size_t __pyx_t_3;
+  Py_ssize_t __pyx_t_4;
+  size_t __pyx_t_5;
+  Py_ssize_t __pyx_t_6;
+  size_t __pyx_t_7;
+  Py_ssize_t __pyx_t_8;
+  size_t __pyx_t_9;
+  size_t __pyx_t_10;
+  size_t __pyx_t_11;
+  Py_ssize_t __pyx_t_12;
+  size_t __pyx_t_13;
+  size_t __pyx_t_14;
+  int __pyx_lineno = 0;
+  const char *__pyx_filename = NULL;
+  int __pyx_clineno = 0;
+  __Pyx_RefNannySetupContext("fast_rate_vote_matrix_build", 0);
+  __pyx_pybuffer_pair.pybuffer.buf = NULL;
+  __pyx_pybuffer_pair.refcount = 0;
+  __pyx_pybuffernd_pair.data = NULL;
+  __pyx_pybuffernd_pair.rcbuffer = &__pyx_pybuffer_pair;
+  __pyx_pybuffer_rate.pybuffer.buf = NULL;
+  __pyx_pybuffer_rate.refcount = 0;
+  __pyx_pybuffernd_rate.data = NULL;
+  __pyx_pybuffernd_rate.rcbuffer = &__pyx_pybuffer_rate;
+  __pyx_pybuffer_D.pybuffer.buf = NULL;
+  __pyx_pybuffer_D.refcount = 0;
+  __pyx_pybuffernd_D.data = NULL;
+  __pyx_pybuffernd_D.rcbuffer = &__pyx_pybuffer_D;
+  {
+    __Pyx_BufFmt_StackElem __pyx_stack[1];
+    if (unlikely(__Pyx_GetBufferAndValidate(&__pyx_pybuffernd_pair.rcbuffer->pybuffer, (PyObject*)__pyx_v_pair, &__Pyx_TypeInfo_nn___pyx_t_5numpy_int32_t, PyBUF_FORMAT| PyBUF_STRIDES, 2, 0, __pyx_stack) == -1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 72; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  }
+  __pyx_pybuffernd_pair.diminfo[0].strides = __pyx_pybuffernd_pair.rcbuffer->pybuffer.strides[0]; __pyx_pybuffernd_pair.diminfo[0].shape = __pyx_pybuffernd_pair.rcbuffer->pybuffer.shape[0]; __pyx_pybuffernd_pair.diminfo[1].strides = __pyx_pybuffernd_pair.rcbuffer->pybuffer.strides[1]; __pyx_pybuffernd_pair.diminfo[1].shape = __pyx_pybuffernd_pair.rcbuffer->pybuffer.shape[1];
+  {
+    __Pyx_BufFmt_StackElem __pyx_stack[1];
+    if (unlikely(__Pyx_GetBufferAndValidate(&__pyx_pybuffernd_rate.rcbuffer->pybuffer, (PyObject*)__pyx_v_rate, &__Pyx_TypeInfo_nn___pyx_t_5numpy_float32_t, PyBUF_FORMAT| PyBUF_STRIDES, 2, 0, __pyx_stack) == -1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 72; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  }
+  __pyx_pybuffernd_rate.diminfo[0].strides = __pyx_pybuffernd_rate.rcbuffer->pybuffer.strides[0]; __pyx_pybuffernd_rate.diminfo[0].shape = __pyx_pybuffernd_rate.rcbuffer->pybuffer.shape[0]; __pyx_pybuffernd_rate.diminfo[1].strides = __pyx_pybuffernd_rate.rcbuffer->pybuffer.strides[1]; __pyx_pybuffernd_rate.diminfo[1].shape = __pyx_pybuffernd_rate.rcbuffer->pybuffer.shape[1];
+  {
+    __Pyx_BufFmt_StackElem __pyx_stack[1];
+    if (unlikely(__Pyx_GetBufferAndValidate(&__pyx_pybuffernd_D.rcbuffer->pybuffer, (PyObject*)__pyx_v_D, &__Pyx_TypeInfo_nn___pyx_t_5numpy_float32_t, PyBUF_FORMAT| PyBUF_STRIDES| PyBUF_WRITABLE, 2, 0, __pyx_stack) == -1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 72; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  }
+  __pyx_pybuffernd_D.diminfo[0].strides = __pyx_pybuffernd_D.rcbuffer->pybuffer.strides[0]; __pyx_pybuffernd_D.diminfo[0].shape = __pyx_pybuffernd_D.rcbuffer->pybuffer.shape[0]; __pyx_pybuffernd_D.diminfo[1].strides = __pyx_pybuffernd_D.rcbuffer->pybuffer.strides[1]; __pyx_pybuffernd_D.diminfo[1].shape = __pyx_pybuffernd_D.rcbuffer->pybuffer.shape[1];
+
+  /* "rankit/util/fast_converter.pyx":76
+ *                              np.ndarray[np.float32_t, ndim=2] D):
+ *     cdef unsigned int i1, i2, i;
+ *     for i in xrange(pair.shape[0]):             # <<<<<<<<<<<<<<
+ *         i1 = <unsigned int>(pair[i, 0])
+ *         i2 = <unsigned int>(pair[i, 1])
+ */
+  __pyx_t_1 = (__pyx_v_pair->dimensions[0]);
+  for (__pyx_t_2 = 0; __pyx_t_2 < __pyx_t_1; __pyx_t_2+=1) {
+    __pyx_v_i = __pyx_t_2;
+
+    /* "rankit/util/fast_converter.pyx":77
+ *     cdef unsigned int i1, i2, i;
+ *     for i in xrange(pair.shape[0]):
+ *         i1 = <unsigned int>(pair[i, 0])             # <<<<<<<<<<<<<<
+ *         i2 = <unsigned int>(pair[i, 1])
+ *         D[i2, i1] += rate[i, 0]
+ */
+    __pyx_t_3 = __pyx_v_i;
+    __pyx_t_4 = 0;
+    __pyx_v_i1 = ((unsigned int)(*__Pyx_BufPtrStrided2d(__pyx_t_5numpy_int32_t *, __pyx_pybuffernd_pair.rcbuffer->pybuffer.buf, __pyx_t_3, __pyx_pybuffernd_pair.diminfo[0].strides, __pyx_t_4, __pyx_pybuffernd_pair.diminfo[1].strides)));
+
+    /* "rankit/util/fast_converter.pyx":78
+ *     for i in xrange(pair.shape[0]):
+ *         i1 = <unsigned int>(pair[i, 0])
+ *         i2 = <unsigned int>(pair[i, 1])             # <<<<<<<<<<<<<<
+ *         D[i2, i1] += rate[i, 0]
+ *         D[i1, i2] += rate[i, 1]
+ */
+    __pyx_t_5 = __pyx_v_i;
+    __pyx_t_6 = 1;
+    __pyx_v_i2 = ((unsigned int)(*__Pyx_BufPtrStrided2d(__pyx_t_5numpy_int32_t *, __pyx_pybuffernd_pair.rcbuffer->pybuffer.buf, __pyx_t_5, __pyx_pybuffernd_pair.diminfo[0].strides, __pyx_t_6, __pyx_pybuffernd_pair.diminfo[1].strides)));
+
+    /* "rankit/util/fast_converter.pyx":79
+ *         i1 = <unsigned int>(pair[i, 0])
+ *         i2 = <unsigned int>(pair[i, 1])
+ *         D[i2, i1] += rate[i, 0]             # <<<<<<<<<<<<<<
+ *         D[i1, i2] += rate[i, 1]
+ */
+    __pyx_t_7 = __pyx_v_i;
+    __pyx_t_8 = 0;
+    __pyx_t_9 = __pyx_v_i2;
+    __pyx_t_10 = __pyx_v_i1;
+    *__Pyx_BufPtrStrided2d(__pyx_t_5numpy_float32_t *, __pyx_pybuffernd_D.rcbuffer->pybuffer.buf, __pyx_t_9, __pyx_pybuffernd_D.diminfo[0].strides, __pyx_t_10, __pyx_pybuffernd_D.diminfo[1].strides) += (*__Pyx_BufPtrStrided2d(__pyx_t_5numpy_float32_t *, __pyx_pybuffernd_rate.rcbuffer->pybuffer.buf, __pyx_t_7, __pyx_pybuffernd_rate.diminfo[0].strides, __pyx_t_8, __pyx_pybuffernd_rate.diminfo[1].strides));
+
+    /* "rankit/util/fast_converter.pyx":80
+ *         i2 = <unsigned int>(pair[i, 1])
+ *         D[i2, i1] += rate[i, 0]
+ *         D[i1, i2] += rate[i, 1]             # <<<<<<<<<<<<<<
+ */
+    __pyx_t_11 = __pyx_v_i;
+    __pyx_t_12 = 1;
+    __pyx_t_13 = __pyx_v_i1;
+    __pyx_t_14 = __pyx_v_i2;
+    *__Pyx_BufPtrStrided2d(__pyx_t_5numpy_float32_t *, __pyx_pybuffernd_D.rcbuffer->pybuffer.buf, __pyx_t_13, __pyx_pybuffernd_D.diminfo[0].strides, __pyx_t_14, __pyx_pybuffernd_D.diminfo[1].strides) += (*__Pyx_BufPtrStrided2d(__pyx_t_5numpy_float32_t *, __pyx_pybuffernd_rate.rcbuffer->pybuffer.buf, __pyx_t_11, __pyx_pybuffernd_rate.diminfo[0].strides, __pyx_t_12, __pyx_pybuffernd_rate.diminfo[1].strides));
+  }
+
+  /* "rankit/util/fast_converter.pyx":72
+ * @cython.boundscheck(False)
+ * @cython.wraparound(False)
+ * def fast_rate_vote_matrix_build(np.ndarray[np.int32_t, ndim=2] pair,             # <<<<<<<<<<<<<<
+ *                              np.ndarray[np.float32_t, ndim=2] rate,
+ *                              np.ndarray[np.float32_t, ndim=2] D):
+ */
+
+  /* function exit code */
+  __pyx_r = Py_None; __Pyx_INCREF(Py_None);
+  goto __pyx_L0;
+  __pyx_L1_error:;
+  { PyObject *__pyx_type, *__pyx_value, *__pyx_tb;
+    __Pyx_ErrFetch(&__pyx_type, &__pyx_value, &__pyx_tb);
+    __Pyx_SafeReleaseBuffer(&__pyx_pybuffernd_D.rcbuffer->pybuffer);
+    __Pyx_SafeReleaseBuffer(&__pyx_pybuffernd_pair.rcbuffer->pybuffer);
+    __Pyx_SafeReleaseBuffer(&__pyx_pybuffernd_rate.rcbuffer->pybuffer);
+  __Pyx_ErrRestore(__pyx_type, __pyx_value, __pyx_tb);}
+  __Pyx_AddTraceback("rankit.util.fast_converter.fast_rate_vote_matrix_build", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_r = NULL;
   goto __pyx_L2;
   __pyx_L0:;
@@ -4443,7 +4946,9 @@ static __Pyx_StringTabEntry __pyx_string_tab[] = {
   {&__pyx_n_s_empty, __pyx_k_empty, sizeof(__pyx_k_empty), 0, 0, 1, 1},
   {&__pyx_n_s_fast_colley_matrix_build, __pyx_k_fast_colley_matrix_build, sizeof(__pyx_k_fast_colley_matrix_build), 0, 0, 1, 1},
   {&__pyx_n_s_fast_colley_vector_build, __pyx_k_fast_colley_vector_build, sizeof(__pyx_k_fast_colley_vector_build), 0, 0, 1, 1},
-  {&__pyx_n_s_fast_point_diff_vote_matrix_buil, __pyx_k_fast_point_diff_vote_matrix_buil, sizeof(__pyx_k_fast_point_diff_vote_matrix_buil), 0, 0, 1, 1},
+  {&__pyx_n_s_fast_rate_diff_vote_matrix_build, __pyx_k_fast_rate_diff_vote_matrix_build, sizeof(__pyx_k_fast_rate_diff_vote_matrix_build), 0, 0, 1, 1},
+  {&__pyx_n_s_fast_rate_vote_matrix_build, __pyx_k_fast_rate_vote_matrix_build, sizeof(__pyx_k_fast_rate_vote_matrix_build), 0, 0, 1, 1},
+  {&__pyx_n_s_fast_simple_diff_vote_matrix_bui, __pyx_k_fast_simple_diff_vote_matrix_bui, sizeof(__pyx_k_fast_simple_diff_vote_matrix_bui), 0, 0, 1, 1},
   {&__pyx_n_s_float32, __pyx_k_float32, sizeof(__pyx_k_float32), 0, 0, 1, 1},
   {&__pyx_kp_s_home_ike_Projects_ranking_ranki, __pyx_k_home_ike_Projects_ranking_ranki, sizeof(__pyx_k_home_ike_Projects_ranking_ranki), 0, 0, 1, 0},
   {&__pyx_n_s_i, __pyx_k_i, sizeof(__pyx_k_i), 0, 0, 1, 1},
@@ -4577,14 +5082,38 @@ static int __Pyx_InitCachedConstants(void) {
   /* "rankit/util/fast_converter.pyx":44
  * @cython.boundscheck(False)
  * @cython.wraparound(False)
- * def fast_point_diff_vote_matrix_build(np.ndarray[np.int32_t, ndim=2] pair,             # <<<<<<<<<<<<<<
+ * def fast_rate_diff_vote_matrix_build(np.ndarray[np.int32_t, ndim=2] pair,             # <<<<<<<<<<<<<<
  *                              np.ndarray[np.float32_t, ndim=2] rate,
  *                              np.ndarray[np.float32_t, ndim=2] D):
  */
   __pyx_tuple__11 = PyTuple_Pack(6, __pyx_n_s_pair, __pyx_n_s_rate, __pyx_n_s_D, __pyx_n_s_i1, __pyx_n_s_i2, __pyx_n_s_i); if (unlikely(!__pyx_tuple__11)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 44; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_tuple__11);
   __Pyx_GIVEREF(__pyx_tuple__11);
-  __pyx_codeobj__12 = (PyObject*)__Pyx_PyCode_New(3, 0, 6, 0, 0, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__11, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_home_ike_Projects_ranking_ranki, __pyx_n_s_fast_point_diff_vote_matrix_buil, 44, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__12)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 44; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_codeobj__12 = (PyObject*)__Pyx_PyCode_New(3, 0, 6, 0, 0, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__11, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_home_ike_Projects_ranking_ranki, __pyx_n_s_fast_rate_diff_vote_matrix_build, 44, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__12)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 44; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+
+  /* "rankit/util/fast_converter.pyx":58
+ * @cython.boundscheck(False)
+ * @cython.wraparound(False)
+ * def fast_simple_diff_vote_matrix_build(np.ndarray[np.int32_t, ndim=2] pair,             # <<<<<<<<<<<<<<
+ *                              np.ndarray[np.float32_t, ndim=2] rate,
+ *                              np.ndarray[np.float32_t, ndim=2] D):
+ */
+  __pyx_tuple__13 = PyTuple_Pack(6, __pyx_n_s_pair, __pyx_n_s_rate, __pyx_n_s_D, __pyx_n_s_i1, __pyx_n_s_i2, __pyx_n_s_i); if (unlikely(!__pyx_tuple__13)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 58; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __Pyx_GOTREF(__pyx_tuple__13);
+  __Pyx_GIVEREF(__pyx_tuple__13);
+  __pyx_codeobj__14 = (PyObject*)__Pyx_PyCode_New(3, 0, 6, 0, 0, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__13, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_home_ike_Projects_ranking_ranki, __pyx_n_s_fast_simple_diff_vote_matrix_bui, 58, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__14)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 58; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+
+  /* "rankit/util/fast_converter.pyx":72
+ * @cython.boundscheck(False)
+ * @cython.wraparound(False)
+ * def fast_rate_vote_matrix_build(np.ndarray[np.int32_t, ndim=2] pair,             # <<<<<<<<<<<<<<
+ *                              np.ndarray[np.float32_t, ndim=2] rate,
+ *                              np.ndarray[np.float32_t, ndim=2] D):
+ */
+  __pyx_tuple__15 = PyTuple_Pack(6, __pyx_n_s_pair, __pyx_n_s_rate, __pyx_n_s_D, __pyx_n_s_i1, __pyx_n_s_i2, __pyx_n_s_i); if (unlikely(!__pyx_tuple__15)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 72; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __Pyx_GOTREF(__pyx_tuple__15);
+  __Pyx_GIVEREF(__pyx_tuple__15);
+  __pyx_codeobj__16 = (PyObject*)__Pyx_PyCode_New(3, 0, 6, 0, 0, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__15, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_home_ike_Projects_ranking_ranki, __pyx_n_s_fast_rate_vote_matrix_build, 72, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__16)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 72; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_RefNannyFinishContext();
   return 0;
   __pyx_L1_error:;
@@ -4746,13 +5275,37 @@ PyMODINIT_FUNC PyInit_fast_converter(void)
   /* "rankit/util/fast_converter.pyx":44
  * @cython.boundscheck(False)
  * @cython.wraparound(False)
- * def fast_point_diff_vote_matrix_build(np.ndarray[np.int32_t, ndim=2] pair,             # <<<<<<<<<<<<<<
+ * def fast_rate_diff_vote_matrix_build(np.ndarray[np.int32_t, ndim=2] pair,             # <<<<<<<<<<<<<<
  *                              np.ndarray[np.float32_t, ndim=2] rate,
  *                              np.ndarray[np.float32_t, ndim=2] D):
  */
-  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_6rankit_4util_14fast_converter_5fast_point_diff_vote_matrix_build, NULL, __pyx_n_s_rankit_util_fast_converter); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 44; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_6rankit_4util_14fast_converter_5fast_rate_diff_vote_matrix_build, NULL, __pyx_n_s_rankit_util_fast_converter); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 44; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_fast_point_diff_vote_matrix_buil, __pyx_t_1) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 44; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_fast_rate_diff_vote_matrix_build, __pyx_t_1) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 44; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+
+  /* "rankit/util/fast_converter.pyx":58
+ * @cython.boundscheck(False)
+ * @cython.wraparound(False)
+ * def fast_simple_diff_vote_matrix_build(np.ndarray[np.int32_t, ndim=2] pair,             # <<<<<<<<<<<<<<
+ *                              np.ndarray[np.float32_t, ndim=2] rate,
+ *                              np.ndarray[np.float32_t, ndim=2] D):
+ */
+  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_6rankit_4util_14fast_converter_7fast_simple_diff_vote_matrix_build, NULL, __pyx_n_s_rankit_util_fast_converter); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 58; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __Pyx_GOTREF(__pyx_t_1);
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_fast_simple_diff_vote_matrix_bui, __pyx_t_1) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 58; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+
+  /* "rankit/util/fast_converter.pyx":72
+ * @cython.boundscheck(False)
+ * @cython.wraparound(False)
+ * def fast_rate_vote_matrix_build(np.ndarray[np.int32_t, ndim=2] pair,             # <<<<<<<<<<<<<<
+ *                              np.ndarray[np.float32_t, ndim=2] rate,
+ *                              np.ndarray[np.float32_t, ndim=2] D):
+ */
+  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_6rankit_4util_14fast_converter_9fast_rate_vote_matrix_build, NULL, __pyx_n_s_rankit_util_fast_converter); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 72; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __Pyx_GOTREF(__pyx_t_1);
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_fast_rate_vote_matrix_build, __pyx_t_1) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 72; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
   /* "rankit/util/fast_converter.pyx":1

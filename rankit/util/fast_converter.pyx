@@ -41,7 +41,7 @@ def fast_colley_vector_build(np.ndarray[np.int32_t, ndim=2] pair,
 
 @cython.boundscheck(False)
 @cython.wraparound(False)
-def fast_point_diff_vote_matrix_build(np.ndarray[np.int32_t, ndim=2] pair,
+def fast_rate_diff_vote_matrix_build(np.ndarray[np.int32_t, ndim=2] pair,
                              np.ndarray[np.float32_t, ndim=2] rate,
                              np.ndarray[np.float32_t, ndim=2] D):
     cdef unsigned int i1, i2, i;
@@ -49,6 +49,32 @@ def fast_point_diff_vote_matrix_build(np.ndarray[np.int32_t, ndim=2] pair,
         i1 = <unsigned int>(pair[i, 0])
         i2 = <unsigned int>(pair[i, 1])
         if rate[i, 0]>rate[i, 1]:
-            D[i2, i1] = rate[i, 0]-rate[i, 1]
+            D[i2, i1] += rate[i, 0]-rate[i, 1]
         else:
-            D[i1, i2] = rate[i, 1]-rate[i, 0]
+            D[i1, i2] += rate[i, 1]-rate[i, 0]
+
+@cython.boundscheck(False)
+@cython.wraparound(False)
+def fast_simple_diff_vote_matrix_build(np.ndarray[np.int32_t, ndim=2] pair,
+                             np.ndarray[np.float32_t, ndim=2] rate,
+                             np.ndarray[np.float32_t, ndim=2] D):
+    cdef unsigned int i1, i2, i;
+    for i in xrange(pair.shape[0]):
+        i1 = <unsigned int>(pair[i, 0])
+        i2 = <unsigned int>(pair[i, 1])
+        if rate[i, 0]>rate[i, 1]:
+            D[i2, i1] += 1
+        else:
+            D[i1, i2] += 1
+
+@cython.boundscheck(False)
+@cython.wraparound(False)
+def fast_rate_vote_matrix_build(np.ndarray[np.int32_t, ndim=2] pair,
+                             np.ndarray[np.float32_t, ndim=2] rate,
+                             np.ndarray[np.float32_t, ndim=2] D):
+    cdef unsigned int i1, i2, i;
+    for i in xrange(pair.shape[0]):
+        i1 = <unsigned int>(pair[i, 0])
+        i2 = <unsigned int>(pair[i, 1])
+        D[i2, i1] += rate[i, 0]
+        D[i1, i2] += rate[i, 1]
