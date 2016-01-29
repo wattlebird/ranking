@@ -5,9 +5,9 @@ from BaseRank import BaseRank
 class ColleyRank(BaseRank):
     """docstring for ColleyRank"""
 
-    def __init__(self, itemlist):
+    def __init__(self, *args, **kwargs):
         self.solver = DefaultSolver()
-        super(ColleyRank, self).__init__(itemlist)
+        super(ColleyRank, self).__init__(*args, **kwargs)
 
     def rate(self, C, b):
         solver = self.solver
@@ -15,9 +15,9 @@ class ColleyRank(BaseRank):
 
 
 class MasseyRank(BaseRank):
-    def __init__(self, itemlist):
+    def __init__(self, *args, **kwargs):
         self.solver = InsufficientRankSolver(force=1)
-        super(MasseyRank, self).__init__(itemlist)
+        super(MasseyRank, self).__init__(*args, **kwargs)
 
     def rate(self, M, b):
         solver = self.solver

@@ -12,8 +12,9 @@ class MarkovRank(BaseRank):
     epsilon: common practice in PageRank, S = epsilon*S+(1-epsilon)*E/n
     bounce: a node without out-link will bounce to every node that links to it.
     """
-    def __init__(self, itemlist, threshold=1e-4, equalvote=None, epsilon=None, bounce=None):
-        super(MarkovRank, self).__init__(itemlist)
+    def __init__(self, threshold=1e-4, equalvote=None, epsilon=None,
+                 bounce=None, *args, **kwargs):
+        super(MarkovRank, self).__init__(*args, **kwargs)
         self.equalvote = equalvote
         self.epsilon = epsilon
         self.bounce = bounce
@@ -59,8 +60,9 @@ class ODRank(BaseRank):
     'defence'
     'summary'
     """
-    def __init__(self, itemlist, threshold = 1e-4, output='summary', epsilon=None):
-        super(ODRank, self).__init__(itemlist)
+    def __init__(self, threshold = 1e-4, output='summary',
+                 epsilon=None, *args, **kwargs):
+        super(ODRank, self).__init__(*args, **kwargs)
         if output!='summary' and output!='defence' and output!='offence':
             raise ValueError("Wrong output rating.")
         self.output = output
@@ -71,7 +73,7 @@ class ODRank(BaseRank):
         # we start from offence rate because each element in matrix A is the
         # score that how much j is superior than i
         output = self.output
-        epsilon = self.epsilon
+        epsilon = self.epsilon # a parameter not used, to be checked.
         threshold = self.threshold
         o = np.ones(A.shape[1], dtype=np.float32)
         o_prev = o.copy()
