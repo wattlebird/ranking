@@ -1,4 +1,5 @@
 import numpy as np
+from fast_converter import fast_consistancy_matrix_build
 
 def ConsistancyMatrix(D):
     """
@@ -8,16 +9,7 @@ def ConsistancyMatrix(D):
     C_ij is the potential that j is superior to i.
     """
     C = np.zeros(D.shape, dtype=np.int32)
+    D = np.require(D, dtype=np.float32)
     E = D.T;
-    for i in xrange(D.shape[0]):
-        for j in xrange(i, D.shape[0]):
-            if i==j: continue;
-            cnt=0;inv=0;
-            for k in xrange(D.shape[0]):
-                if D[i, k]<D[j, k]:cnt+=1;
-                elif D[i, k]>D[j, k]:inv+=1;
-                if E[i, k]>E[j, k]:cnt+=1;
-                elif E[i, k]<E[j, k]:inv+=1;
-            C[i, j]=cnt;
-            C[j, i]=inv;
+    fast_consistancy_matrix_build(D, E, C)
     return C

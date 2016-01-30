@@ -78,3 +78,22 @@ def fast_rate_vote_matrix_build(np.ndarray[np.int32_t, ndim=2] pair,
         i2 = <unsigned int>(pair[i, 1])
         D[i2, i1] += rate[i, 0]
         D[i1, i2] += rate[i, 1]
+
+@cython.boundscheck(False)
+@cython.wraparound(False)
+def fast_consistancy_matrix_build(np.ndarray[np.float32_t, ndim=2] D,
+                                  np.ndarray[np.float32_t, ndim=2] E,
+                                  np.ndarray[np.int32_t, ndim=2] C):
+    cdef unsigned int i, j, k;
+    cdef int cnt, inv;
+    for i in xrange(D.shape[0]):
+        for j in xrange(i, D.shape[0]):
+            if i==j: continue;
+            cnt=0;inv=0;
+            for k in xrange(D.shape[0]):
+                if D[i, k]<D[j, k]:cnt+=1;
+                elif D[i, k]>D[j, k]:inv+=1;
+                if E[i, k]>E[j, k]:cnt+=1;
+                elif E[i, k]<E[j, k]:inv+=1;
+            C[i, j]=cnt;
+            C[j, i]=inv;

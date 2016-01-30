@@ -1,4 +1,5 @@
 import pandas as pd
+import numpy as np
 
 
 class BaseRank(object):
@@ -21,8 +22,21 @@ class BaseRank(object):
         table = pd.DataFrame({
             'title': itemlist['itemid'],
             'rate': pd.Series(rate)
-        })
+        }, columns = [['title', 'rate']])
         ranked = pd.DataFrame(table.sort_values(by='rate', ascending=ascending).\
                  values, columns = table.columns)
-        ranked['rank'] = pd.Series(range(1, len(rate) + 1), dtype='int32')
+        # buggy
+        #ranked['rank'] = pd.Series(range(1, len(rate) + 1), dtype='int32')
+        ranked['rank'] = pd.Series(self._get_true_rank(ranked), dtype='int32')
         return ranked
+
+    def _get_true_rank(self, rankedtable):
+        # rankedtable: ['title', 'rate']
+        r = np.zeros(rankedtable.shape[0], dtype = np.int32)
+        r[0]=1;
+        for i in xrange(1, rankedtable.shape[0]):
+            if rankedtable.iloc[i, 1]!=rankedtable.iloc[i-1, 1]:
+                r[i]=i+1
+            else:
+                r[i]=r[i-1]
+        return r
