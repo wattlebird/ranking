@@ -1,6 +1,7 @@
 import pandas as pd
 import warnings
 from rankit.ranker import BaseRank
+import numpy as np
 
 
 class RankManager(object):
@@ -21,7 +22,7 @@ class RankManager(object):
 
         if cnt!=0:
             for k, v in availableranks.iteritems():
-                assert(type(v), pd.core.frame.DataFrame)
+                assert(type(v)==pd.core.frame.DataFrame)
                 v = v[['title', 'rate', 'rank']]
                 if self.cnt==0:
                     ranktable = pd.DataFrame({'title': v.iloc[:, 0].values,
@@ -55,30 +56,42 @@ class RankManager(object):
             self.ranktable = ranktable
             self.cnt+=1
         else:
-            ranktable = pd.DataFrame({'title': ranktable.iloc[:, 0].values,
-                                      rankmethod: ranktable.iloc[:, 2].values},
+            ranktable = pd.DataFrame({'title': newrank.iloc[:, 0].values,
+                                      rankmethod: newrank.iloc[:, 2].values},
                                      columns=['title', rankmethod])
             self.ranktable = ranktable
             self.cnt+=1
 
-    def delete(self, rankmethod):
+    def delete(self, rankmethod, ignore=False):
         """
         rankmethod: the rankmethod's rank to be deleted.
         return:     None
         """
         ranktable = self.ranktable
-        ranktable.drop(rankmethod, axis=1, inplace=True, errors='raise')
+        if not ignore:
+            ranktable.drop(rankmethod, axis=1, inplace=True, errors='raise')
+        else:
+            ranktable.drop(rankmethod, axis=1, inplace=True, errors='ignore')
         self.ranktable = ranktable
         self.cnt-=1
 
-    def get(self, rankmethod):
+    def get(self, rankmethod, default=None):
         """
         rankmethod: the rankmethod's rank to be retrived.
+        default:    if the rank couldn't be retrived, the return value should be
+                    default. If default is None, it will raise an exception!
         return:     dataframe
         """
         ranktable = self.ranktable
-        rtn = ranktable[['title', rankmethod]]
-        return rtn
+        try:
+            rtn = ranktable[['title', rankmethod]]
+            return rtn
+        except KeyError as e:
+            if default is None:
+                raise e
+            else:
+                return default
+
 
 class RankMerger(RankManager):
     def __init__(self, *args, **kwargs):
@@ -94,10 +107,33 @@ class RankMerger(RankManager):
         # ignore all the items that have nan as rank
         ranktable = ranktable.dropna()
         methods = ranktable.columns.drop('title')
-        tmprate = ranktable[methods].sum(axis=1)
+        candidate_score = np.zeros((ranktable.shape[0], ranktable.shape[1]-1),
+                                   np.int32)
+
+        for c in xrange(methods.shape[0]):
+            method = methods[c]
+            tmprank = ranktable[['title', method]].sort_values(by=method)
+            tmprank['_borda_score'] = pd.Series(
+                self._get_borda_score(tmprank.loc[:,method].values),
+                index=tmprank.index)
+            tmprank.sort_index(inplace=True)
+            candidate_score[:, c]=tmprank.loc[:,'_borda_score']
+        borda_score = candidate_score.sum(axis=1)
+
         tmpitemlst = pd.DataFrame({'itemid': ranktable.loc[:,'title'],
                                    'index': range(ranktable.shape[0])},
                                   columns=['itemid', 'index'])
-        ranker = BaseRank(tmpitemlst, ascending=True)
-        rtn = ranker.rank(tmprate)
-        return rtn.drop('rate', axis=1)
+        ranker = BaseRank(tmpitemlst)
+        rtn = ranker.rank(borda_score)
+        return rtn
+
+    def _get_borda_score(self, rate):
+        score = np.zeros(rate.shape)
+        # one thing that could be made sure is that rate is sorted.
+        b=0
+        for e in xrange(1, rate.shape[0]+1):
+            if e==rate.shape[0] or rate[b]!=rate[e]:
+                for i in xrange(b, e):
+                    score[i] = rate.shape[0]-e
+                b=e
+        return score
