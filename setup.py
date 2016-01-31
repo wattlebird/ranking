@@ -12,7 +12,13 @@ ext_modules=[
     Extension("rankit/util/fast_converter",
               sources = ["rankit/util/fast_converter.pyx"],
               include_dirs=[numpy.get_include()],
-              libraries=["m"])
+              libraries=["m"]
+    ),
+    Extension("rankit/merger/fast_list_matrix",
+              sources = ["rankit/merger/fast_list_matrix.pyx"],
+              include_dirs=[numpy.get_include()],
+              libraries=["m"]
+    )
 ]
 
 setup(

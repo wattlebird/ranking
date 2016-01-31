@@ -1,7 +1,9 @@
 import pandas as pd
 import warnings
-from rankit.ranker import BaseRank
+from rankit.ranker import BaseRank, MarkovRank
 import numpy as np
+from fast_list_matrix import fast_generate_rank_difference_matrix,\
+fast_generate_list_difference_matrix
 
 
 class RankManager(object):
@@ -102,7 +104,7 @@ class RankMerger(RankManager):
         return: a new DataFrame ranktable, with column=['title', 'rank']
         """
         if self.cnt==0:
-            return pd.DataFrame(columns=['title', 'rank'])
+            return pd.DataFrame(columns=['title', 'rate', 'rank'])
         ranktable = self.ranktable
         # ignore all the items that have nan as rank
         ranktable = ranktable.dropna()
@@ -125,6 +127,47 @@ class RankMerger(RankManager):
                                   columns=['itemid', 'index'])
         ranker = BaseRank(tmpitemlst)
         rtn = ranker.rank(borda_score)
+        return rtn
+
+    def AverageRankMerge(self):
+        if self.cnt==0:
+            return pd.DataFrame(columns=['title', 'rate', 'rank'])
+        ranktable = self.ranktable
+        ranktable = ranktable.dropna()
+        methods = ranktable.columns.drop('title')
+        average_score = ranktable[methods].sum(axis=1).values
+
+        tmpitemlst = pd.DataFrame({'itemid': ranktable.loc[:,'title'],
+                                   'index': range(ranktable.shape[0])},
+                                  columns=['itemid', 'index'])
+        ranker = BaseRank(tmpitemlst, ascending=True)
+        rtn = ranker.rank(average_score)
+        return rtn
+
+    def RankListVoteMerge(self, matrix_type="rankdifference", epsilon=0.75):
+        """
+        matrix_type: 'rankdifference' or 'listdifference'
+        epsilon:     PR specific value
+        """
+        if self.cnt==0:
+            return pd.DataFrame(columns=['title', 'rate', 'rank'])
+        ranktable = self.ranktable
+        ranktable = ranktable.dropna()
+        methods = ranktable.columns.drop('title')
+        D = np.zeros((ranktable.shape[0], ranktable.shape[0]), dtype=np.float32)
+        if matrix_type=="rankdifference":
+            fast_generate_rank_difference_matrix(ranktable[methods].values, D)
+        elif matrix_type=="listdifference":
+            fast_generate_list_difference_matrix(ranktable[methods].values, D)
+        else:
+            raise ValueError("Invalid matrix type.")
+
+        tmpitemlst = pd.DataFrame({'itemid': ranktable.loc[:,'title'],
+                                   'index': range(ranktable.shape[0])},
+                                  columns=['itemid', 'index'])
+        ranker = MarkovRank(itemlist=tmpitemlst, epsilon=epsilon)
+        rate = ranker.rate(D)
+        rtn = ranker.rank(rate)
         return rtn
 
     def _get_borda_score(self, rate):
