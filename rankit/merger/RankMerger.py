@@ -180,3 +180,39 @@ class RankMerger(RankManager):
                     score[i] = rate.shape[0]-e
                 b=e
         return score
+
+class RankComparer(RankManager):
+    def __init__(self, *args, **kwargs):
+        super(RankComparer, self).__init__(*args, **kwargs)
+
+    def KendallMeasure(self, method1, method2):
+        """Kandall Measure ranges from -1 to 1
+        The closer to 1, the more similar two ranks are.
+        The closer to -1, the less similar two ranks are.
+        Currently, this only applies to complete comparision.
+        """
+        ranktable = self.ranktable
+        ranktable = ranktable.dropna() # Force Complete Kendall meaure
+        methods = ranktable.columns.drop('title')
+        a = ranktable[[method1, method2]].sort_values(by=method1).values
+        nd=0.0;
+        for i in xrange(a.shape[0]):
+            for b in xrange(a.shape[0]-1, i, -1):
+                if a[b-1, 1]>a[b, 1]:
+                    a[b, 1], a[b-1, 1] = a[b-1, 1], a[b, 1]
+                    nd+=1;
+        n = a.shape[0]*(a.shape[0]-1)/2.0
+        return (n-nd*2)/n
+
+    def SpearmanMeasure(self, method1, method2):
+        """SpearmanMeaure ranges from 0 to infinite.
+        The smaller Spearman Measure, the more similar to ranks are.
+        """
+        ranktable = self.ranktable
+        ranktable = ranktable.dropna() # Force Complete Kendall meaure
+        methods = ranktable.columns.drop('title')
+        a = ranktable[[method1, method2]].values
+        phi = 0.0
+        for k in xrange(a.shape[0]):
+            phi+=abs(a[k, 0] - a[k, 1])/float(min(a[k, 0], a[k, 1]))
+        return phi

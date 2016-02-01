@@ -61,28 +61,37 @@ class ODRank(BaseRank):
     'summary'
     """
     def __init__(self, threshold = 1e-4, output='summary',
-                 epsilon=None, *args, **kwargs):
+                 epsilon=None, iteration=10000, *args, **kwargs):
         super(ODRank, self).__init__(*args, **kwargs)
         if output!='summary' and output!='defence' and output!='offence':
             raise ValueError("Wrong output rating.")
         self.output = output
         self.epsilon = epsilon
         self.threshold = threshold
+        self.iteration = iteration
 
     def rate(self, A):
-        # we start from offence rate because each element in matrix A is the
-        # score that how much j is superior than i
         output = self.output
-        epsilon = self.epsilon # a parameter not used, to be checked.
+        epsilon = self.epsilon
         threshold = self.threshold
-        o = np.ones(A.shape[1], dtype=np.float32)
-        o_prev = o.copy()
+        iteration = self.iteration
+        if epsilon is not None:
+            E = np.ones(A.shape, A.dtype)*epsilon
+            E-=np.diag(np.diag(E))
+            A+=E
+        d = np.ones(A.shape[0], dtype=np.float32)
+        d_prev = d.copy()
+        cnt=0
         while True:
-            o = np.dot(A.T, 1./np.dot(A, 1./o))
-            if norm(o_prev-o)<threshold:
+            d = np.dot(A, 1./np.dot(A.T, 1./d))
+            if norm(d_prev-d)<threshold:
                 break;
-            o_prev = o.copy()
-        d = np.dot(A, 1./o)
+            else:
+                cnt+=1;
+                if cnt>iteration: break;
+            d_prev = d.copy()
+
+        o = np.dot(A.T, 1./d)
         if output=='summary':
             return o/d
         elif output=='offence':

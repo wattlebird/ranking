@@ -1,7 +1,7 @@
 from numpy.testing import assert_array_equal, assert_array_almost_equal
 from numpy.testing import assert_almost_equal
 from nose.tools import assert_raises, assert_true, assert_equal, assert_false
-from rankit.merger import RankMerger, RankManager
+from rankit.merger import RankMerger, RankManager, RankComparer
 import numpy as np
 import pandas as pd
 
@@ -15,7 +15,6 @@ r2 = pd.DataFrame({'title': pd.Series(['B', 'C', 'A']),
 
 
 def test_rank_manager():
-    rankset = dict({'method1': r1, 'method2': r2})
     mgr = RankManager()
     assert_true(mgr.cnt==0)
     mgr.update('method1', r1)
@@ -31,3 +30,9 @@ def test_rank_manager():
     mgr.delete('method1')
     assert_true(mgr.cnt==1)
     assert_raises(KeyError, mgr.get, 'method1')
+
+def test_complete_rank_comparer():
+    rankset = dict({'method1': r1, 'method2': r2})
+    cp = RankComparer(rankset)
+    assert_equal(cp.KendallMeasure('method1', 'method2'), -1.0/3.0)
+    assert_equal(cp.SpearmanMeasure('method1', 'method2'), 3.5)

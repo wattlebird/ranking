@@ -2,7 +2,7 @@ import pandas as pd
 import numpy as np
 from fast_converter import fast_colley_matrix_build, fast_colley_vector_build,\
 fast_rate_diff_vote_matrix_build, fast_simple_diff_vote_matrix_build, \
-fast_rate_vote_matrix_build
+fast_rate_vote_matrix_build, fast_contest_count_matrix_build
 from scipy.sparse import coo_matrix, csr_matrix
 
 
@@ -77,6 +77,7 @@ class Converter(object):
 
     def RateDifferenceVoteMatrix(self):
         """This function outputs only Point Difference Matrix.
+        It can be ensured that every element of the matrix are not less than 0
         """
         idx = self.itemlist
         table = self.table
@@ -163,3 +164,26 @@ class Converter(object):
 
     def DataDifferenceMatrix(self):
         return self.RateDifferenceVoteMatrix().T
+
+    def CountMatrix(self):
+        """This matrix counts all the contests that have been recorded by the
+        item_pair_rate table.
+        If two teams held more than one contest, and they have different order, the matrix
+        will also record them accordingly in the symmetric elements of the matrix.
+        """
+        idx = self.itemlist
+        pair = self.pair
+
+        icnt = len(idx)
+        D = np.zeros((icnt, icnt), dtype=np.float32)
+        fast_contest_count_matrix_build(pair, D)
+        return D
+
+    def SymmetricDifferenceMatrix(self):
+        C = self.CountMatrix()
+        D = self.DataDifferenceMatrix()
+        C = np.triu(C+C.T)
+        D = np.triu(D-D.T)
+        S = D/C
+        S[np.isnan(S)]=0;
+        return S-S.T
