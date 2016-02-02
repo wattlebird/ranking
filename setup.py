@@ -14,8 +14,8 @@ ext_modules=[
               include_dirs=[numpy.get_include()],
               libraries=["m"]
     ),
-    Extension("rankit/merger/fast_list_matrix",
-              sources = ["rankit/merger/fast_list_matrix.pyx"],
+    Extension("rankit/manager/fast_list_matrix",
+              sources = ["rankit/manager/fast_list_matrix.pyx"],
               include_dirs=[numpy.get_include()],
               libraries=["m"]
     )
