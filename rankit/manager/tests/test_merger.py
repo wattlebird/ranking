@@ -36,3 +36,15 @@ def test_complete_rank_comparer():
     cp = RankComparer(rankset)
     assert_equal(cp.KendallMeasure('method1', 'method2'), -1.0/3.0)
     assert_equal(cp.SpearmanMeasure('method1', 'method2'), 3.5)
+
+def test_borda_count_rank_merger():
+    rankset = dict({'method1': r1, 'method2': r2})
+    mgr = RankMerger(rankset)
+    rst = mgr.BordaCountMerge()
+    assert_array_equal(rst.loc[:, 'title'].values, np.array(['B', 'A', 'C']))
+
+def test_avarage_rank_merger():
+    rankset = dict({'method1': r1, 'method2': r2})
+    mgr = RankMerger(rankset)
+    rst = mgr.AverageRankMerge()
+    assert_array_equal(rst.loc[:, 'title'].values, np.array(['B', 'A', 'C']))

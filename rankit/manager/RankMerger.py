@@ -1,6 +1,6 @@
 import pandas as pd
 import warnings
-from rankit.ranker import BaseRank, MarkovRank
+from rankit.ranker import BaseRank, MarkovRank, LeastViolatedRank
 import numpy as np
 from fast_list_matrix import fast_generate_rank_difference_matrix,\
 fast_generate_list_difference_matrix
@@ -169,6 +169,29 @@ class RankMerger(RankManager):
         rate = ranker.rate(D)
         rtn = ranker.rank(rate)
         return rtn
+
+    def LeastViolatedMerge(self, verbose=0):
+        if self.cnt==0:
+            return pd.DataFrame(columns=['title', 'rate', 'rank'])
+        ranktable = self.ranktable
+        ranktable = ranktable.dropna()
+        methods = ranktable.columns.drop('title')
+        C = np.zeros((ranktable.shape[0], ranktable.shape[0]), dtype=np.float32)
+        fast_generate_list_difference_matrix(ranktable[methods].values, C)
+        # originally in this funciton, C[i, j] is the list count that ranked i lower than j
+        # but here, C[i, j] should be the number of lists that i is ranked higher than j minus
+        # the number of lists that i is ranked lower than j.
+        C = C.T-C
+
+        tmpitemlst = pd.DataFrame({'itemid': ranktable.loc[:,'title'],
+                                   'index': range(ranktable.shape[0])},
+                                  columns=['itemid', 'index'])
+        ranker = LeastViolatedRank(itemlist=tmpitemlst, minimize=False,
+                                   verbose=verbose, ascending=True)
+        rate = ranker.rate(C)
+        rtn = ranker.rank(rate)
+        return rtn
+
 
     def _get_borda_score(self, rate):
         score = np.zeros(rate.shape)

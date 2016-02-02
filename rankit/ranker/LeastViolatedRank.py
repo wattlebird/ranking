@@ -1,4 +1,3 @@
-from ortools.linear_solver import pywraplp
 import numpy as np
 from BaseRank import BaseRank
 
@@ -18,7 +17,6 @@ class LeastViolatedRank(BaseRank):
         if solvertp!='SCIP' and solvertp!='CBC':
             raise KeyError("Invalid solver option.")
         self.solvertp = solvertp
-        self.itemlist = itemlist
         self.minimize = minimize
         self.verbose = verbose
 
@@ -29,6 +27,7 @@ class LeastViolatedRank(BaseRank):
         minimize = self.minimize
         verbose = self.verbose
         solvertp = self.solvertp
+        from ortools.linear_solver import pywraplp
         if solvertp=='SCIP':
             solver = pywraplp.Solver('BILP',pywraplp.Solver.SCIP_MIXED_INTEGER_PROGRAMMING)
         else:

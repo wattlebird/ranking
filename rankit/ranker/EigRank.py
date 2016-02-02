@@ -98,3 +98,51 @@ class ODRank(BaseRank):
             return o
         elif output=='defence':
             return d
+
+class KeenerRank(BaseRank):
+    """docstring for KeenerRank"""
+    def __init__(self, regularization=True, func=None, epsilon=None, threshold=1e-4,
+                 *args, **kwargs):
+        super(KeenerRank, self).__init__(*args, **kwargs)
+        self.regularization = regularization
+        self.func = func
+        self.epsilon = epsilon
+        self.threshold = threshold
+
+    def rate(self, A, C):
+        regularization = self.regularization
+        func = self.func
+        epsilon = self.epsilon
+        threshold = self.threshold
+        B = self._KeenerMatrix(A, C, regularization, func, epsilon)
+        prev_r = np.ones(B.shape[0])
+        r = prev_r.copy()
+        while True:
+            r = r/np.sum(r)
+            if norm(r-prev_r)<threshold:
+                break;
+            else:
+                prev_r = r.copy()
+            r = np.dot(B, r)
+        return r
+
+    def _KeenerMatrix(self, A, C, regularization, func, epsilon):
+        """func is a regularization function imposed on every element of matrix.
+        """
+        # Apply Laplace Law
+        B = A+A.T+2;
+        A = A+1
+        A = A/B
+        # Regularization
+        if func is not None:
+            h = np.frompyfunc(func, 1, 1)
+            A = np.require(h(A), dtype=np.float32)
+        # divide by contest number
+        C = C+C.T
+        c = np.sum(C, axis=1)
+        if regularization:
+            A = A/np.expand_dims(c, axis=1)
+        A[C==0]=0
+        if epsilon is not None:
+            A += epsilon*np.ones(A.shape, A.dtype)
+        return A

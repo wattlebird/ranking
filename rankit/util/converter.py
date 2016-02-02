@@ -5,6 +5,8 @@ fast_rate_diff_vote_matrix_build, fast_simple_diff_vote_matrix_build, \
 fast_rate_vote_matrix_build, fast_contest_count_matrix_build
 from scipy.sparse import coo_matrix, csr_matrix
 
+def pref_func(x):
+    return 0.5+np.sign(a-0.5)*(np.sqrt(np.abs(2*a-1)))/2
 
 class Converter(object):
     """Converter accepts dataframe hdf5 files and converts it to different matrix
