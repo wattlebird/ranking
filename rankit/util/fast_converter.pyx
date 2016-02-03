@@ -30,11 +30,11 @@ def fast_colley_vector_build(np.ndarray[np.int32_t, ndim=2] pair,
         i1 = <unsigned int>(pair[i, 0])
         i2 = <unsigned int>(pair[i, 1])
         if rate[i, 0]>rate[i, 1]:
-            b[i1]+=1
-            b[i2]-=1
+            b[i1]+=rate[i, 2]
+            b[i2]-=rate[i, 2]
         elif rate[i, 0]<rate[i, 1]:
-            b[i1]-=1
-            b[i2]+=1
+            b[i1]-=rate[i, 2]
+            b[i2]+=rate[i, 2]
         # tie wouldn't affect b
     b/=2
     b+=1

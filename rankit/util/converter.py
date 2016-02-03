@@ -9,15 +9,24 @@ def pref_func(x):
     return 0.5+np.sign(a-0.5)*(np.sqrt(np.abs(2*a-1)))/2
 
 class Converter(object):
-    """Converter accepts dataframe hdf5 files and converts it to different matrix
-    suitable for the needs of ranker. Users can call different matrix generator
-    to generate their matrix wanted.
+    """Converter accepts a pandas DataFrame with the columns 'primary',
+    'secondary', 'rate1', 'rate2' and 'weight'. The DataFrame can either be
+    passed directly through table parameter or a hdf5 filename, in which the
+    DataFrame must be indexed by 'item_pair_rate'.
+    Users can call different matrix generator to generate their matrix wanted.
     """
 
-    def __init__(self, filename):
-        # Detect table format
-        table = pd.read_hdf(filename, "item_pair_rate")
-        self.table = table[['primary','secondary','rate1','rate2','weight']]
+    def __init__(self, table=None, filename=''):
+        """
+        table:      the pandas DataFrame that records rankable objects competition
+                    record
+        filename:   the hdf5 filename that stores the DataFrame. The DataFrame
+                    must be indexed by 'item_pair_rate'.
+        """
+        if table is None:
+            table = pd.read_hdf(filename, "item_pair_rate")
+        table = table[['primary','secondary','rate1','rate2','weight']]
+        self.table = table
         # itemid to index table
         idx = self._extract_list(self.table)
         self.itemlist = idx
@@ -144,7 +153,7 @@ class Converter(object):
         X = X.tocsr()
         W = np.require(table.iloc[:,4].values, np.float32)
         W = coo_matrix((W, (np.arange(W.shape[0]), np.arange(W.shape[0])))).tocsr()
-        return (X.T*W*X).todense()
+        return np.asarray((X.T*W*X).todense())
 
 
     def MasseyVector(self):
