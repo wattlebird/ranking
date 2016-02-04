@@ -3,3 +3,4 @@ scipy
 pandas
 tables
 nose
+cython
