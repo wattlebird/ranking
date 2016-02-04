@@ -1,4 +1,8 @@
 language: python
+addons:
+  apt:
+    packages:
+      - libhdf5-serial-dev
 python:
   - "2.6"
   - "2.7"
