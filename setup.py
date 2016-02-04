@@ -7,9 +7,13 @@ import os
 if os.path.exists('MANIFEST'):
     os.remove('MANIFEST')
 
+with open('requirements.txt') as f:
+    required = f.read().splitlines()
+
 setup(name="rankit",
-      version="0.1.0dev0",
+      version="0.1.0.dev0",
       packages=find_packages(exclude=['example']),
+      install_requires=required,
       include_package_data=True,
       description="A linear algebra based ranking solution",
       author="Ronnie Wang",
@@ -38,4 +42,5 @@ setup(name="rankit",
                    'Programming Language :: Python :: 2',
                    'Programming Language :: Python :: 2.6',
                    'Programming Language :: Python :: 2.7',],
+      test_suite = 'nose.collector'
       )
