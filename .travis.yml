@@ -16,9 +16,9 @@ cache:
     - $HOME/.pip-cache/
 
 install:
-  - pip install -r requirements.txt --download-cache $HOME/.pip-cache
-  - python setup.py build
-  - python setup.py install
+  - pip install .
+  - pip install -r requirements.txt
+
 # command to run tests
 script: nosetests
 
