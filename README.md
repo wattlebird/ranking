@@ -1,4 +1,3 @@
-[![Build Status](https://travis-ci.org/wattlebird/ranking.svg)](https://travis-ci.org/wattlebird/ranking)
 # Rankit
 
 Game Start!

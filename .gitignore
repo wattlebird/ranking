@@ -61,7 +61,7 @@ target/
 *.ipynb_checkpoints
 
 #Data
-Data/*
+Data/input.bin
 
 #PyCharm
 .idea
