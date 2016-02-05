@@ -25,7 +25,7 @@ ext_modules=[
 ]
 
 setup(name="rankit",
-      version="0.1.0.dev0",
+      version="0.1.0",
       packages=find_packages(exclude=['example']),
       install_requires=required,
       include_package_data=True,

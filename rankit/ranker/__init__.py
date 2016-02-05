@@ -5,4 +5,4 @@ from LeastViolatedRank import LeastViolatedRank
 from DifferenceRank import DifferenceRank
 
 __all__ = ['BaseRank', 'ColleyRank', 'MasseyRank', 'MarkovRank', 'ODRank',
-'LeastViolatedRank', 'KeenerRank']
+'LeastViolatedRank', 'KeenerRank', 'DifferenceRank']

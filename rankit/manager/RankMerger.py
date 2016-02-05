@@ -227,6 +227,19 @@ class RankComparer(RankManager):
         n = a.shape[0]*(a.shape[0]-1)/2.0
         return (n-nd*2)/n
 
+    def KendallMeasureMatrix(self):
+        ranktable = self.ranktable
+        ranktable = ranktable.dropna() # Force Complete Kendall meaure
+        methods = ranktable.columns.drop('title')
+        mtr = np.zeros((methods.shape[0], methods.shape[0]), dtype=np.float)
+        for i in xrange(methods.shape[0]):
+            for j in xrange(i, methods.shape[0]):
+                if i==j: mtr[i, j]=1.0;
+                else:
+                    mtr[i, j]=self.KendallMeasure(methods[i], methods[j])
+                    mtr[j, i]=mtr[i, j]
+        return mtr;
+
     def SpearmanMeasure(self, method1, method2):
         """SpearmanMeaure ranges from 0 to infinite.
         The smaller Spearman Measure, the more similar to ranks are.
@@ -239,3 +252,16 @@ class RankComparer(RankManager):
         for k in xrange(a.shape[0]):
             phi+=abs(a[k, 0] - a[k, 1])/float(min(a[k, 0], a[k, 1]))
         return phi
+
+    def SpearmanMeaureMatrix(self):
+        ranktable = self.ranktable
+        ranktable = ranktable.dropna() # Force Complete Kendall meaure
+        methods = ranktable.columns.drop('title')
+        mtr = np.zeros((methods.shape[0], methods.shape[0]), dtype=np.float)
+        for i in xrange(methods.shape[0]):
+            for j in xrange(i, methods.shape[0]):
+                if i==j: mtr[i, j]=0.0;
+                else:
+                    mtr[i, j]=self.SpearmanMeasure(methods[i], methods[j])
+                    mtr[j, i]=mtr[i, j]
+        return mtr;

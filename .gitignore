@@ -66,3 +66,7 @@ Data/*
 #PyCharm
 .idea
 
+# Examples
+example/bangumi/*.bin
+example/bangumi/setting.py
+*.pkl

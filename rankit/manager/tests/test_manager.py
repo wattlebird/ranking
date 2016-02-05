@@ -37,6 +37,15 @@ def test_complete_rank_comparer():
     assert_equal(cp.KendallMeasure('method1', 'method2'), -1.0/3.0)
     assert_equal(cp.SpearmanMeasure('method1', 'method2'), 3.5)
 
+def test_measure_matrix():
+    rankset = dict({'method1': r1, 'method2': r2})
+    cp = RankComparer(rankset)
+    M = cp.KendallMeasureMatrix()
+    assert_true(np.min(M)>=-1.0)
+    assert_true(np.max(M)<=1.0)
+    M = cp.SpearmanMeaureMatrix()
+    assert_true(np.min(M)>=0.0)
+
 def test_borda_count_rank_merger():
     rankset = dict({'method1': r1, 'method2': r2})
     mgr = RankMerger(rankset)

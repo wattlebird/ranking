@@ -1,4 +1,4 @@
-
+[![Build Status](https://travis-ci.org/wattlebird/ranking.svg)](https://travis-ci.org/wattlebird/ranking)
 # Rankit
 
 Game Start!
@@ -6,7 +6,7 @@ Game Start!
 
 ## What is rankit?
 
-Rankit is created for the purpose of a more "scientific" ranking of rankable objects. 
+Rankit is created for the purpose of a more "scientific" ranking of rankable objects.
 
 We rank objects by giving objects a score, we call that score rating. Traditionally, people would generate ratings by calculating average score, median or some other statistical meaningful numbers. However, eventhough this method is widely accepted, it can have bias in some extreme cases. Average score would easily be manipulated if the number of scores are unrestricted. One cope to this cheat is weighting, but this can only leverage the problem but not solving it.
 
@@ -399,5 +399,3 @@ Rank merging algorithms:
 ## License
 
 MIT Licensed.
-
-
