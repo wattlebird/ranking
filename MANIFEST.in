@@ -3,3 +3,4 @@ include requirements.txt
 include README.md
 include Data/test_small.bin
 recursive-include rankit *.py *.pyx *.c
+recursive-include example *.py *.pyx *.c *.md
