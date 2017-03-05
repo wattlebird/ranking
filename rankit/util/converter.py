@@ -32,7 +32,7 @@ class Converter(object):
         self.itemlist = idx
         temptable = table.iloc[:,:2].values
         pair = np.fromfunction(np.vectorize(lambda i, j: idx[temptable[i,j]]),
-                        temptable.shape)
+                        temptable.shape, dtype=np.int)
         pair = np.require(pair, dtype=np.int32)
         self.pair = pair
 
@@ -48,7 +48,7 @@ class Converter(object):
     def ItemList(self):
         table = self.itemlist
         itemlist =  pd.DataFrame({'itemid': table.keys(),
-                             'index': table.values()},
+                             'index': np.require(table.values(), dtype=np.int)},
                             columns=['itemid', 'index'])
         itemlist.sort_values(by='index',inplace=True)
         return pd.DataFrame(itemlist.values,
