@@ -30,7 +30,7 @@ class InsufficientRankSolver(DefaultSolver):
                 rtn = super(InsufficientRankSolver, self).solve(A, b)
                 break;
             except LinAlgError as e:
-                if epsilon is None and force is None:
+                if self.epsilon is None and self.force is None:
                     raise RuntimeError("Did not provide a way to resolve sigular matrix")
 
             if epsilon is not None:
@@ -40,9 +40,14 @@ class InsufficientRankSolver(DefaultSolver):
                     E-=np.diag(np.diag(E))
                 A+=E
                 epsilon = None
+                self.epsilon = epsilon
             else:
                 A[-1,:] = np.ones(A.shape[0], A.dtype)
                 b[-1] = 0
+                if matrix_rank(A)<A.shape[0]:
+                    raise RuntimeError("Did not provide a way to resolve sigular matrix")
                 force = None
+                self.force = force
+                
 
         return rtn;

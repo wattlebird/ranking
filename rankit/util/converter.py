@@ -70,7 +70,7 @@ class Converter(object):
 
         return C
 
-    def ColleyVector(self):
+    def ColleyVector(self, tiethreshold=0.0):
         idx = self.itemlist
         table = self.table
 
@@ -81,6 +81,7 @@ class Converter(object):
 
         fast_colley_vector_build(pair,
                         np.require(table.iloc[:,2:].values, dtype=np.float32),
+                        tiethreshold,
                         b)
 
         return b
@@ -156,8 +157,10 @@ class Converter(object):
         return np.asarray((X.T*W*X).todense())
 
 
-    def MasseyVector(self):
+    def MasseyVector(self, tiethreshold=0):
         """This function produces X'Wy
+
+        fairthreshold:  a match with a score difference less or equal than a certain threshold is set to 0 by force.
         """
         idx = self.itemlist
         table = self.table
@@ -169,7 +172,8 @@ class Converter(object):
         X = coo_matrix((data, (i, j)), shape=(table.shape[0], len(idx)))
         X = X.tocsr()
         W = np.require(table.iloc[:,4].values, np.float32)
-        y = table.iloc[:, 2].values - table.iloc[:, 3].values;
+        y = table.iloc[:, 2].values - table.iloc[:, 3].values
+        y[np.abs(y)<=tiethreshold]=0
         Wy=np.multiply(W, y)
         return X.T*Wy
 

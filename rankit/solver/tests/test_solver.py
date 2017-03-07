@@ -27,5 +27,5 @@ def singular_matrix_failure1_test():
     assert_raises(RuntimeError, solver.solve, A, b)
 
 def singular_matrix_failure2_test():
-    solver = InsufficientRankSolver(force=True)
-    assert_raises(RuntimeError, solver.solve, A, b)
+    solver2 = InsufficientRankSolver(epsilon=None, force=True)
+    assert_raises(RuntimeError, solver2.solve, A, b)
