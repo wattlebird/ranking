@@ -23,8 +23,7 @@ class BaseRank(object):
             'title': itemlist['itemid'],
             'rate': pd.Series(rate)
         }, columns = [['title', 'rate']])
-        ranked = pd.DataFrame(table.sort_values(by='rate', ascending=ascending).\
-                 values, columns = table.columns)
+        ranked = table.sort_values(by='rate', ascending=ascending).reset_index(drop=True)
         # buggy
         #ranked['rank'] = pd.Series(range(1, len(rate) + 1), dtype='int32')
         ranked['rank'] = pd.Series(self._get_true_rank(ranked), dtype='int32')
