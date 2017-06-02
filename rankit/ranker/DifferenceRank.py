@@ -1,5 +1,5 @@
 import numpy as np
-from BaseRank import BaseRank
+from .BaseRank import BaseRank
 
 class DifferenceRank(BaseRank):
     """docstring for DifferenceRank"""

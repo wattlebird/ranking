@@ -8,12 +8,12 @@ def main():
     ranks = dict()
     cvt = Converter(filename='average.bin')
 
-    C=cvt.ColleyMatrix()
-    b=cvt.ColleyVector()
-    ranker=ColleyRank(itemlist=cvt.ItemList())
-    x=ranker.rate(C,b)
-    r=ranker.rank(x)
-    ranks['ariavg_colley']=r
+    C = cvt.ColleyMatrix()
+    b = cvt.ColleyVector()
+    ranker = ColleyRank(itemlist=cvt.ItemList())
+    x = ranker.rate(C, b)
+    r = ranker.rank(x)
+    ranks['ariavg_colley'] = r
 
     M=cvt.MasseyMatrix()
     b=cvt.MasseyVector()

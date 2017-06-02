@@ -1,5 +1,5 @@
 import numpy as np
-from BaseRank import BaseRank
+from .BaseRank import BaseRank
 from numpy.linalg import norm
 
 

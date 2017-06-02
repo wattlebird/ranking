@@ -2,7 +2,7 @@ import pandas as pd
 import warnings
 from rankit.ranker import BaseRank, MarkovRank, LeastViolatedRank
 import numpy as np
-from fast_list_matrix import fast_generate_rank_difference_matrix,\
+from .fast_list_matrix import fast_generate_rank_difference_matrix,\
 fast_generate_list_difference_matrix
 
 
@@ -18,27 +18,27 @@ class RankManager(object):
         super(RankManager, self).__init__()
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
-            assert(type(availableranks)==dict)
+            assert type(availableranks) == dict
         cnt = len(availableranks)
-        self.cnt=0
+        self.cnt = 0
 
-        if cnt!=0:
-            for k, v in availableranks.iteritems():
-                assert(type(v)==pd.core.frame.DataFrame)
+        if cnt != 0:
+            for k, v in availableranks.items():
+                assert type(v) == pd.core.frame.DataFrame
                 v = v[['title', 'rate', 'rank']]
-                if self.cnt==0:
+                if self.cnt == 0:
                     ranktable = pd.DataFrame({'title': v.iloc[:, 0].values,
                                               k: v.iloc[:, 2].values},
                                              columns=['title', k])
-                    self.cnt+=1
+                    self.cnt += 1
                 else:
                     ranktable = ranktable.merge(v, how='outer', on='title')
                     ranktable.rename(columns={'rank':k}, inplace=True)
                     ranktable.drop('rate', axis=1, inplace=True, errors='ignore')
-                    self.cnt+=1
-            self.ranktable=ranktable
+                    self.cnt += 1
+            self.ranktable = ranktable
         else:
-            self.ranktable=None
+            self.ranktable = None
 
     def update(self, rankmethod, newrank):
         """
@@ -49,20 +49,20 @@ class RankManager(object):
         """
         newrank = newrank[['title', 'rate', 'rank']]
         ranktable = self.ranktable
-        if self.cnt!=0:
+        if self.cnt != 0:
             if rankmethod in ranktable.columns:
                 raise KeyError("Duplicated rankmethod!")
             ranktable = ranktable.merge(newrank, how='outer', on='title')
             ranktable.rename(columns={'rank': rankmethod}, inplace=True)
             ranktable.drop('rate', axis=1, inplace=True, errors='ignore')
             self.ranktable = ranktable
-            self.cnt+=1
+            self.cnt += 1
         else:
             ranktable = pd.DataFrame({'title': newrank.iloc[:, 0].values,
                                       rankmethod: newrank.iloc[:, 2].values},
                                      columns=['title', rankmethod])
             self.ranktable = ranktable
-            self.cnt+=1
+            self.cnt += 1
 
     def delete(self, rankmethod, ignore=False):
         """
@@ -75,7 +75,7 @@ class RankManager(object):
         else:
             ranktable.drop(rankmethod, axis=1, inplace=True, errors='ignore')
         self.ranktable = ranktable
-        self.cnt-=1
+        self.cnt -= 1
 
     def get(self, rankmethod, default=None):
         """
@@ -103,7 +103,7 @@ class RankMerger(RankManager):
         """
         return: a new DataFrame ranktable, with column=['title', 'rank']
         """
-        if self.cnt==0:
+        if self.cnt == 0:
             return pd.DataFrame(columns=['title', 'rate', 'rank'])
         ranktable = self.ranktable
         # ignore all the items that have nan as rank
@@ -112,17 +112,17 @@ class RankMerger(RankManager):
         candidate_score = np.zeros((ranktable.shape[0], ranktable.shape[1]-1),
                                    np.int32)
 
-        for c in xrange(methods.shape[0]):
+        for c in range(methods.shape[0]):
             method = methods[c]
             tmprank = ranktable[['title', method]].sort_values(by=method)
             tmprank['_borda_score'] = pd.Series(
-                self._get_borda_score(tmprank.loc[:,method].values),
+                self._get_borda_score(tmprank.loc[:, method].values),
                 index=tmprank.index)
             tmprank.sort_index(inplace=True)
-            candidate_score[:, c]=tmprank.loc[:,'_borda_score']
+            candidate_score[:, c] = tmprank.loc[:, '_borda_score']
         borda_score = candidate_score.sum(axis=1)
 
-        tmpitemlst = pd.DataFrame({'itemid': ranktable.loc[:,'title'],
+        tmpitemlst = pd.DataFrame({'itemid': ranktable.loc[:, 'title'],
                                    'index': range(ranktable.shape[0])},
                                   columns=['itemid', 'index'])
         ranker = BaseRank(tmpitemlst)
@@ -197,9 +197,9 @@ class RankMerger(RankManager):
         score = np.zeros(rate.shape)
         # one thing that could be made sure is that rate is sorted.
         b=0
-        for e in xrange(1, rate.shape[0]+1):
+        for e in range(1, rate.shape[0]+1):
             if e==rate.shape[0] or rate[b]!=rate[e]:
-                for i in xrange(b, e):
+                for i in range(b, e):
                     score[i] = rate.shape[0]-e
                 b=e
         return score
@@ -219,8 +219,8 @@ class RankComparer(RankManager):
         methods = ranktable.columns.drop('title')
         a = ranktable[[method1, method2]].sort_values(by=method1).values
         nd=0.0;
-        for i in xrange(a.shape[0]):
-            for b in xrange(a.shape[0]-1, i, -1):
+        for i in range(a.shape[0]):
+            for b in range(a.shape[0]-1, i, -1):
                 if a[b-1, 1]>a[b, 1]:
                     a[b, 1], a[b-1, 1] = a[b-1, 1], a[b, 1]
                     nd+=1;
@@ -232,8 +232,8 @@ class RankComparer(RankManager):
         ranktable = ranktable.dropna() # Force Complete Kendall meaure
         methods = ranktable.columns.drop('title')
         mtr = np.zeros((methods.shape[0], methods.shape[0]), dtype=np.float)
-        for i in xrange(methods.shape[0]):
-            for j in xrange(i, methods.shape[0]):
+        for i in range(methods.shape[0]):
+            for j in range(i, methods.shape[0]):
                 if i==j: mtr[i, j]=1.0;
                 else:
                     mtr[i, j]=self.KendallMeasure(methods[i], methods[j])
@@ -249,7 +249,7 @@ class RankComparer(RankManager):
         methods = ranktable.columns.drop('title')
         a = ranktable[[method1, method2]].values
         phi = 0.0
-        for k in xrange(a.shape[0]):
+        for k in range(a.shape[0]):
             phi+=abs(a[k, 0] - a[k, 1])/float(min(a[k, 0], a[k, 1]))
         return phi
 
@@ -258,8 +258,8 @@ class RankComparer(RankManager):
         ranktable = ranktable.dropna() # Force Complete Kendall meaure
         methods = ranktable.columns.drop('title')
         mtr = np.zeros((methods.shape[0], methods.shape[0]), dtype=np.float)
-        for i in xrange(methods.shape[0]):
-            for j in xrange(i, methods.shape[0]):
+        for i in range(methods.shape[0]):
+            for j in range(i, methods.shape[0]):
                 if i==j: mtr[i, j]=0.0;
                 else:
                     mtr[i, j]=self.SpearmanMeasure(methods[i], methods[j])

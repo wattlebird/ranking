@@ -1,6 +1,6 @@
 import pandas as pd
 import numpy as np
-from fast_converter import fast_colley_matrix_build, fast_colley_vector_build,\
+from .fast_converter import fast_colley_matrix_build, fast_colley_vector_build,\
 fast_rate_diff_vote_matrix_build, fast_simple_diff_vote_matrix_build, \
 fast_rate_vote_matrix_build, fast_contest_count_matrix_build
 from scipy.sparse import coo_matrix, csr_matrix
@@ -25,31 +25,31 @@ class Converter(object):
         """
         if table is None:
             table = pd.read_hdf(filename, "item_pair_rate")
-        table = table[['primary','secondary','rate1','rate2','weight']]
+        table = table[['primary', 'secondary', 'rate1', 'rate2', 'weight']]
         self.table = table
         # itemid to index table
         idx = self._extract_list(self.table)
         self.itemlist = idx
-        temptable = table.iloc[:,:2].values
-        pair = np.fromfunction(np.vectorize(lambda i, j: idx[temptable[i,j]]),
-                        temptable.shape, dtype=np.int)
+        temptable = table.iloc[:, :2].values
+        pair = np.fromfunction(np.vectorize(lambda i, j: idx[temptable[i, j]]),
+                               temptable.shape, dtype=np.int)
         pair = np.require(pair, dtype=np.int32)
         self.pair = pair
 
     def _extract_list(self, table):
-        iid = np.hstack([table.loc[:,'primary'].values,
-              table.loc[:,'secondary'].values])
+        iid = np.hstack([table.loc[:, 'primary'].values,
+                         table.loc[:, 'secondary'].values])
         iid = np.unique(iid)
         # index to itemid
         self.iid = iid
         item_id = dict(zip(iid, range(iid.shape[0])))
         return item_id
-
+ 
     def ItemList(self):
         table = self.itemlist
-        itemlist =  pd.DataFrame({'itemid': table.keys(),
-                             'index': np.require(table.values(), dtype=np.int)},
-                            columns=['itemid', 'index'])
+        itemlist = pd.DataFrame({'itemid': table.keys(),
+                                 'index': np.require(table.values(), dtype=np.int)},
+                                columns=['itemid', 'index'])
         itemlist.sort_values(by='index',inplace=True)
         return pd.DataFrame(itemlist.values,
                             index = pd.Index(range(itemlist.shape[0])),

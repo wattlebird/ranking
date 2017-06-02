@@ -18,11 +18,11 @@ C = np.array([
         [2,2,0]
     ], np.int32)
 
-testtable = pd.DataFrame({'primary':['A','B','C','A'],
-                          'secondary':['B','C','B','C'],
-                          'rate1':[1,2,1,2],
-                          'rate2':[2,3,3,1],
-                          'weight':[2,1,1,1]})
+testtable = pd.DataFrame({'primary': ['A', 'B', 'C', 'A'],
+                          'secondary': ['B', 'C', 'B', 'C'],
+                          'rate1':[1, 2, 1, 2],
+                          'rate2':[2, 3, 3, 1],
+                          'weight':[2, 1, 1, 1]})
 
 def consistancy_matrix_builder_test():
     assert_array_equal(ConsistancyMatrix(D), C)

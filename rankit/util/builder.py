@@ -1,5 +1,5 @@
 import numpy as np
-from fast_converter import fast_consistancy_matrix_build
+from .fast_converter import fast_consistancy_matrix_build
 
 def ConsistancyMatrix(D):
     """

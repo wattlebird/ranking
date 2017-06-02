@@ -1,5 +1,5 @@
 from rankit.solver import DefaultSolver, InsufficientRankSolver
-from BaseRank import BaseRank
+from .BaseRank import BaseRank
 
 
 class ColleyRank(BaseRank):

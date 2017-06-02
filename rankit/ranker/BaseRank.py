@@ -33,7 +33,7 @@ class BaseRank(object):
         # rankedtable: ['title', 'rate']
         r = np.zeros(rankedtable.shape[0], dtype = np.int32)
         r[0]=1;
-        for i in xrange(1, rankedtable.shape[0]):
+        for i in range(1, rankedtable.shape[0]):
             if rankedtable.iloc[i, 1]!=rankedtable.iloc[i-1, 1]:
                 r[i]=i+1
             else:

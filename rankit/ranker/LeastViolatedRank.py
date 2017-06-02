@@ -1,5 +1,5 @@
 import numpy as np
-from BaseRank import BaseRank
+from .BaseRank import BaseRank
 
 
 class LeastViolatedRank(BaseRank):
@@ -81,13 +81,13 @@ class LeastViolatedRank(BaseRank):
                     constraint2[-1].SetCoefficient(X[k][i], 1)
             if len(constraint2)==0:
                 if verbose!=0:
-                    print "Iteration #%s: %s new triangle constraints added. Problem solved!"\
-                    %(str(niter), str(len(constraint2)))
+                    print("Iteration #%s: %s new triangle constraints added. Problem solved!"\
+                    %(str(niter), str(len(constraint2))))
                 break;
             else:
                 if verbose!=0:
-                    print "Iteration #%s: %s new triangle constraints added."\
-                    %(str(niter), str(len(constraint2)))
+                    print("Iteration #%s: %s new triangle constraints added."\
+                    %(str(niter), str(len(constraint2))))
             status = solver.Solve()
             if status!=0:
                 raise RuntimeError("IP solver failed with error code %s"%str(status))

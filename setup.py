@@ -2,7 +2,6 @@ from setuptools import setup, find_packages
 from setuptools.extension import Extension
 from Cython.Build import cythonize
 import numpy
-
 import os
 
 if os.path.exists('MANIFEST'):
@@ -12,15 +11,15 @@ with open('requirements.txt') as f:
     required = f.read().splitlines()
 
 ext_modules=[
-  Extension("rankit/util/fast_converter",
+  Extension("rankit.util.fast_converter",
             ["rankit/util/fast_converter.pyx"],
             include_dirs=[numpy.get_include()],
-            libraries=["m"]
+            libraries=[]
   ),
-  Extension("rankit/manager/fast_list_matrix",
+  Extension("rankit.manager.fast_list_matrix",
             ["rankit/manager/fast_list_matrix.pyx"],
             include_dirs=[numpy.get_include()],
-            libraries=["m"]
+            libraries=[]
   )
 ]
 
@@ -44,6 +43,7 @@ setup(name="rankit",
                    'Operating System :: Unix',
                    'Programming Language :: Python :: 2',
                    'Programming Language :: Python :: 2.6',
-                   'Programming Language :: Python :: 2.7',],
+                   'Programming Language :: Python :: 2.7',
+                   'Programming Language :: Python :: 3.5'],
       test_suite = 'nose.collector'
       )

@@ -1,0 +1,156 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003" DefaultTargets="Build">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{62c9e615-a967-4201-97a1-0e227952746e}</ProjectGuid>
+    <ProjectHome />
+    <StartupFile>setup.py</StartupFile>
+    <SearchPath />
+    <WorkingDirectory>.</WorkingDirectory>
+    <OutputPath>.</OutputPath>
+    <ProjectTypeGuids>{888888a0-9f3d-457c-b088-3a5042f75d52}</ProjectTypeGuids>
+    <LaunchProvider>Standard Python launcher</LaunchProvider>
+    <InterpreterId>Global|VisualStudio|Python 3.5</InterpreterId>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)' == 'Debug'" />
+  <PropertyGroup Condition="'$(Configuration)' == 'Release'" />
+  <PropertyGroup>
+    <VisualStudioVersion Condition=" '$(VisualStudioVersion)' == '' ">10.0</VisualStudioVersion>
+  </PropertyGroup>
+  <ItemGroup>
+    <Content Include="build\lib.linux-x86_64-3.5\rankit.egg-info\dependency_links.txt" />
+    <Content Include="build\lib.linux-x86_64-3.5\rankit.egg-info\requires.txt" />
+    <Content Include="build\lib.linux-x86_64-3.5\rankit.egg-info\SOURCES.txt" />
+    <Content Include="build\lib.linux-x86_64-3.5\rankit.egg-info\top_level.txt" />
+    <Content Include="build\lib.win-amd64-3.5\rankit.egg-info\dependency_links.txt" />
+    <Content Include="build\lib.win-amd64-3.5\rankit.egg-info\requires.txt" />
+    <Content Include="build\lib.win-amd64-3.5\rankit.egg-info\SOURCES.txt" />
+    <Content Include="build\lib.win-amd64-3.5\rankit.egg-info\top_level.txt" />
+    <Content Include="rankit.egg-info\dependency_links.txt" />
+    <Content Include="rankit.egg-info\requires.txt" />
+    <Content Include="rankit.egg-info\SOURCES.txt" />
+    <Content Include="rankit.egg-info\top_level.txt" />
+    <Content Include="requirements.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="build\lib.linux-x86_64-3.5\rankit\manager\RankMerger.py" />
+    <Compile Include="build\lib.linux-x86_64-3.5\rankit\manager\tests\test_manager.py" />
+    <Compile Include="build\lib.linux-x86_64-3.5\rankit\manager\tests\__init__.py" />
+    <Compile Include="build\lib.linux-x86_64-3.5\rankit\manager\__init__.py" />
+    <Compile Include="build\lib.linux-x86_64-3.5\rankit\ranker\BaseRank.py" />
+    <Compile Include="build\lib.linux-x86_64-3.5\rankit\ranker\ColleyRank.py" />
+    <Compile Include="build\lib.linux-x86_64-3.5\rankit\ranker\DifferenceRank.py" />
+    <Compile Include="build\lib.linux-x86_64-3.5\rankit\ranker\EigRank.py" />
+    <Compile Include="build\lib.linux-x86_64-3.5\rankit\ranker\LeastViolatedRank.py" />
+    <Compile Include="build\lib.linux-x86_64-3.5\rankit\ranker\tests\test_ranker.py" />
+    <Compile Include="build\lib.linux-x86_64-3.5\rankit\ranker\tests\__init__.py" />
+    <Compile Include="build\lib.linux-x86_64-3.5\rankit\ranker\__init__.py" />
+    <Compile Include="build\lib.linux-x86_64-3.5\rankit\solver\default.py" />
+    <Compile Include="build\lib.linux-x86_64-3.5\rankit\solver\tests\test_solver.py" />
+    <Compile Include="build\lib.linux-x86_64-3.5\rankit\solver\tests\__init__.py" />
+    <Compile Include="build\lib.linux-x86_64-3.5\rankit\solver\__init__.py" />
+    <Compile Include="build\lib.linux-x86_64-3.5\rankit\util\builder.py" />
+    <Compile Include="build\lib.linux-x86_64-3.5\rankit\util\converter.py" />
+    <Compile Include="build\lib.linux-x86_64-3.5\rankit\util\tests\test_util.py" />
+    <Compile Include="build\lib.linux-x86_64-3.5\rankit\util\tests\__init__.py" />
+    <Compile Include="build\lib.linux-x86_64-3.5\rankit\util\__init__.py" />
+    <Compile Include="build\lib.linux-x86_64-3.5\rankit\__init__.py" />
+    <Compile Include="build\lib.win-amd64-3.5\rankit\manager\RankMerger.py" />
+    <Compile Include="build\lib.win-amd64-3.5\rankit\manager\tests\test_manager.py" />
+    <Compile Include="build\lib.win-amd64-3.5\rankit\manager\tests\__init__.py" />
+    <Compile Include="build\lib.win-amd64-3.5\rankit\manager\__init__.py" />
+    <Compile Include="build\lib.win-amd64-3.5\rankit\ranker\BaseRank.py" />
+    <Compile Include="build\lib.win-amd64-3.5\rankit\ranker\ColleyRank.py" />
+    <Compile Include="build\lib.win-amd64-3.5\rankit\ranker\DifferenceRank.py" />
+    <Compile Include="build\lib.win-amd64-3.5\rankit\ranker\EigRank.py" />
+    <Compile Include="build\lib.win-amd64-3.5\rankit\ranker\LeastViolatedRank.py" />
+    <Compile Include="build\lib.win-amd64-3.5\rankit\ranker\tests\test_ranker.py" />
+    <Compile Include="build\lib.win-amd64-3.5\rankit\ranker\tests\__init__.py" />
+    <Compile Include="build\lib.win-amd64-3.5\rankit\ranker\__init__.py" />
+    <Compile Include="build\lib.win-amd64-3.5\rankit\solver\default.py" />
+    <Compile Include="build\lib.win-amd64-3.5\rankit\solver\tests\test_solver.py" />
+    <Compile Include="build\lib.win-amd64-3.5\rankit\solver\tests\__init__.py" />
+    <Compile Include="build\lib.win-amd64-3.5\rankit\solver\__init__.py" />
+    <Compile Include="build\lib.win-amd64-3.5\rankit\util\builder.py" />
+    <Compile Include="build\lib.win-amd64-3.5\rankit\util\converter.py" />
+    <Compile Include="build\lib.win-amd64-3.5\rankit\util\tests\test_util.py" />
+    <Compile Include="build\lib.win-amd64-3.5\rankit\util\tests\__init__.py" />
+    <Compile Include="build\lib.win-amd64-3.5\rankit\util\__init__.py" />
+    <Compile Include="build\lib.win-amd64-3.5\rankit\__init__.py" />
+    <Compile Include="example\bangumi\generate_ranks.py" />
+    <Compile Include="example\bangumi\setup.py" />
+    <Compile Include="example\bangumi\user_rate_converter.py" />
+    <Compile Include="rankit\manager\RankMerger.py" />
+    <Compile Include="rankit\manager\tests\test_manager.py" />
+    <Compile Include="rankit\manager\tests\__init__.py" />
+    <Compile Include="rankit\manager\__init__.py" />
+    <Compile Include="rankit\ranker\BaseRank.py" />
+    <Compile Include="rankit\ranker\ColleyRank.py" />
+    <Compile Include="rankit\ranker\DifferenceRank.py" />
+    <Compile Include="rankit\ranker\EigRank.py" />
+    <Compile Include="rankit\ranker\LeastViolatedRank.py" />
+    <Compile Include="rankit\ranker\tests\test_ranker.py" />
+    <Compile Include="rankit\ranker\tests\__init__.py" />
+    <Compile Include="rankit\ranker\__init__.py" />
+    <Compile Include="rankit\solver\default.py" />
+    <Compile Include="rankit\solver\tests\test_solver.py" />
+    <Compile Include="rankit\solver\tests\__init__.py" />
+    <Compile Include="rankit\solver\__init__.py" />
+    <Compile Include="rankit\Table\Table.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="rankit\Table\__init__.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="rankit\util\builder.py" />
+    <Compile Include="rankit\util\converter.py" />
+    <Compile Include="rankit\util\tests\test_util.py" />
+    <Compile Include="rankit\util\tests\__init__.py" />
+    <Compile Include="rankit\util\__init__.py" />
+    <Compile Include="rankit\__init__.py" />
+    <Compile Include="setup.py" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="build\" />
+    <Folder Include="build\lib.linux-x86_64-3.5\" />
+    <Folder Include="build\lib.linux-x86_64-3.5\rankit" />
+    <Folder Include="build\lib.linux-x86_64-3.5\rankit.egg-info" />
+    <Folder Include="build\lib.linux-x86_64-3.5\rankit\manager" />
+    <Folder Include="build\lib.linux-x86_64-3.5\rankit\manager\tests" />
+    <Folder Include="build\lib.linux-x86_64-3.5\rankit\ranker" />
+    <Folder Include="build\lib.linux-x86_64-3.5\rankit\ranker\tests" />
+    <Folder Include="build\lib.linux-x86_64-3.5\rankit\solver" />
+    <Folder Include="build\lib.linux-x86_64-3.5\rankit\solver\tests" />
+    <Folder Include="build\lib.linux-x86_64-3.5\rankit\util" />
+    <Folder Include="build\lib.linux-x86_64-3.5\rankit\util\tests" />
+    <Folder Include="build\lib.win-amd64-3.5\" />
+    <Folder Include="build\lib.win-amd64-3.5\rankit" />
+    <Folder Include="build\lib.win-amd64-3.5\rankit.egg-info" />
+    <Folder Include="build\lib.win-amd64-3.5\rankit\manager" />
+    <Folder Include="build\lib.win-amd64-3.5\rankit\manager\tests" />
+    <Folder Include="build\lib.win-amd64-3.5\rankit\ranker" />
+    <Folder Include="build\lib.win-amd64-3.5\rankit\ranker\tests" />
+    <Folder Include="build\lib.win-amd64-3.5\rankit\solver" />
+    <Folder Include="build\lib.win-amd64-3.5\rankit\solver\tests" />
+    <Folder Include="build\lib.win-amd64-3.5\rankit\util" />
+    <Folder Include="build\lib.win-amd64-3.5\rankit\util\tests" />
+    <Folder Include="example\" />
+    <Folder Include="example\bangumi" />
+    <Folder Include="rankit" />
+    <Folder Include="rankit.egg-info" />
+    <Folder Include="rankit\manager" />
+    <Folder Include="rankit\manager\tests" />
+    <Folder Include="rankit\Table\" />
+    <Folder Include="rankit\ranker" />
+    <Folder Include="rankit\ranker\tests" />
+    <Folder Include="rankit\solver" />
+    <Folder Include="rankit\solver\tests" />
+    <Folder Include="rankit\util" />
+    <Folder Include="rankit\util\tests" />
+  </ItemGroup>
+  <ItemGroup>
+    <InterpreterReference Include="Global|VisualStudio|Python 3.5" />
+  </ItemGroup>
+  <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\Python Tools\Microsoft.PythonTools.targets" />
+</Project>
