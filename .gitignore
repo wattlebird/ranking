@@ -63,8 +63,9 @@ target/
 #Data
 Data/
 
-#PyCharm
+#IDEs
 .idea
+.vscode/
 
 # Examples
 example/bangumi/*.bin

@@ -31,6 +31,8 @@
     <Content Include="rankit.egg-info\requires.txt" />
     <Content Include="rankit.egg-info\SOURCES.txt" />
     <Content Include="rankit.egg-info\top_level.txt" />
+    <Content Include="rankit\Table\convert.pyx" />
+    <Content Include="rankit\util\fast_converter.pyx" />
     <Content Include="requirements.txt" />
   </ItemGroup>
   <ItemGroup>
@@ -85,19 +87,26 @@
     <Compile Include="rankit\manager\tests\test_manager.py" />
     <Compile Include="rankit\manager\tests\__init__.py" />
     <Compile Include="rankit\manager\__init__.py" />
-    <Compile Include="rankit\ranker\BaseRank.py" />
-    <Compile Include="rankit\ranker\ColleyRank.py" />
-    <Compile Include="rankit\ranker\DifferenceRank.py" />
-    <Compile Include="rankit\ranker\EigRank.py" />
-    <Compile Include="rankit\ranker\LeastViolatedRank.py" />
-    <Compile Include="rankit\ranker\tests\test_ranker.py" />
-    <Compile Include="rankit\ranker\tests\__init__.py" />
-    <Compile Include="rankit\ranker\__init__.py" />
+    <Compile Include="rankit\Ranker\BaseRank.py" />
+    <Compile Include="rankit\Ranker\ColleyRank.py" />
+    <Compile Include="rankit\Ranker\DifferenceRank.py" />
+    <Compile Include="rankit\Ranker\EigRank.py" />
+    <Compile Include="rankit\Ranker\LeastViolatedRank.py" />
+    <Compile Include="rankit\Ranker\UnsupervisedRanker.py" />
+    <Compile Include="rankit\Ranker\tests\test_ranker.py" />
+    <Compile Include="rankit\Ranker\tests\__init__.py" />
+    <Compile Include="rankit\Ranker\__init__.py" />
     <Compile Include="rankit\solver\default.py" />
     <Compile Include="rankit\solver\tests\test_solver.py" />
     <Compile Include="rankit\solver\tests\__init__.py" />
     <Compile Include="rankit\solver\__init__.py" />
     <Compile Include="rankit\Table\Table.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="rankit\Table\test\test_table.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="rankit\Table\test\__init__.py">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="rankit\Table\__init__.py">
@@ -142,12 +151,13 @@
     <Folder Include="rankit\manager" />
     <Folder Include="rankit\manager\tests" />
     <Folder Include="rankit\Table\" />
-    <Folder Include="rankit\ranker" />
-    <Folder Include="rankit\ranker\tests" />
+    <Folder Include="rankit\Ranker\" />
+    <Folder Include="rankit\Ranker\tests\" />
     <Folder Include="rankit\solver" />
     <Folder Include="rankit\solver\tests" />
+    <Folder Include="rankit\Table\test\" />
     <Folder Include="rankit\util" />
-    <Folder Include="rankit\util\tests" />
+    <Folder Include="rankit\util\tests\" />
   </ItemGroup>
   <ItemGroup>
     <InterpreterReference Include="Global|VisualStudio|Python 3.5" />

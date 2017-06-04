@@ -20,6 +20,10 @@ ext_modules=[
             ["rankit/manager/fast_list_matrix.pyx"],
             include_dirs=[numpy.get_include()],
             libraries=[]
+  ),
+  Extension("rankit.Table.convert",
+            ["rankit/Table/convert.pyx"],
+            include_dirs=[numpy.get_include()]
   )
 ]
 
