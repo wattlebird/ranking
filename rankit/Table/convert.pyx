@@ -4,6 +4,8 @@ cimport numpy as np
 cimport cython
 
 
+@cython.boundscheck(False)
+@cython.wraparound(False)
 def fast_record_to_pairwise(np.ndarray[np.int32_t, ndim=1] item,
                              np.ndarray[np.float64_t, ndim=1] score):
     cdef unsigned int i1, i2, i, cnt;
@@ -24,3 +26,4 @@ def fast_record_to_pairwise(np.ndarray[np.int32_t, ndim=1] item,
             pairscore[cnt, 1] = s2
             cnt += 1
     return (pairidx, pairscore)
+

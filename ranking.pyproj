@@ -31,6 +31,9 @@
     <Content Include="rankit.egg-info\requires.txt" />
     <Content Include="rankit.egg-info\SOURCES.txt" />
     <Content Include="rankit.egg-info\top_level.txt" />
+    <Content Include="rankit\Ranker\matrix_build.pyx">
+      <SubType>Code</SubType>
+    </Content>
     <Content Include="rankit\Table\convert.pyx" />
     <Content Include="rankit\util\fast_converter.pyx" />
     <Content Include="requirements.txt" />

@@ -1,3 +1,3 @@
-from .UnsupervisedRanker import MasseyRanker
+from .UnsupervisedRanker import MasseyRanker, ColleyRanker
 
-__all__ = ["MasseyRanker"]
+__all__ = ["MasseyRanker", "ColleyRanker"]

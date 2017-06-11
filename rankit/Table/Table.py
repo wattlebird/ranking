@@ -46,16 +46,16 @@ class Table(object):
                     "score": np.require(score, dtype=np.float)
                     }, columns=["user", "item", "score"])
         elif isinstance(data, pd.DataFrame):
-            raw_table = data.ix[:, map(lambda x: x-1, col)]
+            raw_table = data.ix[:, map(lambda x: x-1, col)].copy()
             # but how to ensure np.float64?
             if datatype=="paired":
                 raw_table.columns = ["host", "visit", "hscore", "vscore"]
-                raw_table[["hscore", "vscore"]] = raw_table[["hscore", "vscore"]].apply(pd.to_numeric)
+                raw_table.loc[:, ["hscore", "vscore"]] = raw_table.loc[:, ["hscore", "vscore"]].apply(pd.to_numeric)
             else:
                 raw_table.columns = ["user", "item", "score"]
-                raw_table[["score"]] = raw_table[["score"]].apply(pd.to_numeric)
+                raw_table.loc[:, ["score"]] = raw_table.loc[:, ["score"]].apply(pd.to_numeric)
 
-        self.raw_table = raw_table
+        self.table = raw_table.dropna(inplace=True)
         self.datatype = datatype
 
         itemlut = dict()
@@ -87,28 +87,28 @@ class Table(object):
             hidx = np.require(list(map(lambda x: itemlut[x], raw_table["host"].tolist())), dtype=np.int)
             vidx = np.require(list(map(lambda x: itemlut[x], raw_table["visit"].tolist())), dtype=np.int)
             table = pd.DataFrame({
+                "host": raw_table["host"],
+                "visit": raw_table["visit"],
                 "hidx": hidx,
                 "vidx": vidx,
                 "hscore": raw_table["hscore"],
                 "vscore": raw_table["vscore"],
-                "weight": np.ones(len(hidx), dtype=np.float)
-            }, columns=["hidx", "vidx", "hscore", "vscore", "weight"])
-            table.sort_values(["hidx", "vidx"], ascending=True, inplace=True)
+            }, columns=["host", "visit", "hidx", "vidx", "hscore", "vscore"])
         else:
             idx = np.require(list(map(lambda x: itemlut[x], raw_table["item"].tolist())), dtype=np.int)
             table = pd.DataFrame({
                 "user": raw_table["user"],
+                "item": raw_table["item"],
                 "iidx": idx,
                 "score": raw_table["score"]
-            }, columns=["user", "iidx", "score"])
-            table.sort_values(["user", "iidx"], ascending=True, inplace=True)
+            }, columns=["user", "item", "iidx", "score"])
 
-        self.table = table.dropna()
+        self._table = table
 
 
     def _gettable(self, datatype="paired"):
         if self.datatype==datatype:
-            return self.table
+            return self._table
         else:
             if datatype!="paired" and datatype!="record":
                 raise ValueError("Invalid datatype provided.")
@@ -123,8 +123,20 @@ class Table(object):
     def gettabletype(self):
         return self.datatype
     
-    def getrawtable(self):
-        return self.raw_table
+    def gettable(self):
+        return self.table
+
+    def getitemlist(self):
+        if hasattr(self, 'converted_table'):
+            if self.datatype=="record":
+                return self._table.loc[:, ["user", "host", "visit"]]
+            else:
+                return self._table.loc[:, ["host", "visit"]]
+        else:
+            if self.datatype=="record":
+                return self._table.loc[:, ["user", "item"]]
+            else:
+                return self._table.loc[:, ["host", "visit"]]
                 
     def _record_to_paired(self):
         gptable = self.table.groupby("user")
@@ -143,8 +155,9 @@ class Table(object):
             "hidx": p[:, 0],
             "vidx": p[:, 1],
             "hscore": s[:, 0],
-            "vscore": s[:, 1],
-            "weight": np.ones(p.shape[0], dtype=np.float)
-        }, columns=["hidx", "vidx", "hscore", "vscore", "weight"])
+            "vscore": s[:, 1]
+        }, columns=["hidx", "vidx", "hscore", "vscore"])
 
     
+    def __repr__(self):
+        return "Table with provided data:\n"+self.getrawtable().__repr__()
