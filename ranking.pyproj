@@ -5,7 +5,8 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>{62c9e615-a967-4201-97a1-0e227952746e}</ProjectGuid>
     <ProjectHome />
-    <StartupFile>setup.py</StartupFile>
+    <StartupFile>
+    </StartupFile>
     <SearchPath />
     <WorkingDirectory>.</WorkingDirectory>
     <OutputPath>.</OutputPath>
@@ -34,8 +35,6 @@
     <Content Include="rankit\Ranker\matrix_build.pyx">
       <SubType>Code</SubType>
     </Content>
-    <Content Include="rankit\Table\convert.pyx" />
-    <Content Include="rankit\util\fast_converter.pyx" />
     <Content Include="requirements.txt" />
   </ItemGroup>
   <ItemGroup>
@@ -86,23 +85,10 @@
     <Compile Include="example\bangumi\generate_ranks.py" />
     <Compile Include="example\bangumi\setup.py" />
     <Compile Include="example\bangumi\user_rate_converter.py" />
-    <Compile Include="rankit\manager\RankMerger.py" />
-    <Compile Include="rankit\manager\tests\test_manager.py" />
-    <Compile Include="rankit\manager\tests\__init__.py" />
-    <Compile Include="rankit\manager\__init__.py" />
-    <Compile Include="rankit\Ranker\BaseRank.py" />
-    <Compile Include="rankit\Ranker\ColleyRank.py" />
-    <Compile Include="rankit\Ranker\DifferenceRank.py" />
-    <Compile Include="rankit\Ranker\EigRank.py" />
-    <Compile Include="rankit\Ranker\LeastViolatedRank.py" />
     <Compile Include="rankit\Ranker\UnsupervisedRanker.py" />
     <Compile Include="rankit\Ranker\tests\test_ranker.py" />
     <Compile Include="rankit\Ranker\tests\__init__.py" />
     <Compile Include="rankit\Ranker\__init__.py" />
-    <Compile Include="rankit\solver\default.py" />
-    <Compile Include="rankit\solver\tests\test_solver.py" />
-    <Compile Include="rankit\solver\tests\__init__.py" />
-    <Compile Include="rankit\solver\__init__.py" />
     <Compile Include="rankit\Table\Table.py">
       <SubType>Code</SubType>
     </Compile>
@@ -115,11 +101,6 @@
     <Compile Include="rankit\Table\__init__.py">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="rankit\util\builder.py" />
-    <Compile Include="rankit\util\converter.py" />
-    <Compile Include="rankit\util\tests\test_util.py" />
-    <Compile Include="rankit\util\tests\__init__.py" />
-    <Compile Include="rankit\util\__init__.py" />
     <Compile Include="rankit\__init__.py" />
     <Compile Include="setup.py" />
   </ItemGroup>
@@ -151,16 +132,10 @@
     <Folder Include="example\bangumi" />
     <Folder Include="rankit" />
     <Folder Include="rankit.egg-info" />
-    <Folder Include="rankit\manager" />
-    <Folder Include="rankit\manager\tests" />
     <Folder Include="rankit\Table\" />
     <Folder Include="rankit\Ranker\" />
     <Folder Include="rankit\Ranker\tests\" />
-    <Folder Include="rankit\solver" />
-    <Folder Include="rankit\solver\tests" />
     <Folder Include="rankit\Table\test\" />
-    <Folder Include="rankit\util" />
-    <Folder Include="rankit\util\tests\" />
   </ItemGroup>
   <ItemGroup>
     <InterpreterReference Include="Global|VisualStudio|Python 3.5" />

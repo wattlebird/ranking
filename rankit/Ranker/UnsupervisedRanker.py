@@ -46,7 +46,7 @@ class MasseyRanker(UnsupervisedRanker):
         
 
     def rank(self, ascending=True):
-        table = self.table._gettable(datatype="paired")
+        table = self.table._gettable()
         m = table.shape[0]
         n = self.table.itemnum
         y = np.zeros(m)
@@ -82,7 +82,7 @@ class ColleyRanker(UnsupervisedRanker):
         return super().__init__(*args, **kwargs)
 
     def rank(self, ascending=True):
-        table = self.table._gettable(datatype="paired")
+        table = self.table._gettable()
         idx = table.ix[:, :2]
         score = table.ix[:, 2:]
         C, b = fast_colley_build(np.require(idx, dtype=np.int32), np.require(score, dtype=np.float64), 
