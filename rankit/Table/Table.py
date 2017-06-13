@@ -69,10 +69,10 @@ class Table(object):
         self._table = table
     
     def gettable(self):
-        return self.table
+        return self.table.copy()
 
     def getitemlist(self):
-        return self.table.loc[:, ["host", "visit"]]
+        return self.table.loc[:, ["host", "visit"]].copy()
 
     def _gettable(self):
         return self._table.loc[:, ["hidx", "vidx", "hscore", "vscore"]]

@@ -40,13 +40,19 @@ class UnsupervisedRanker(object):
         return r
 
 class MasseyRanker(UnsupervisedRanker):
-    def __init__(self, tiethreshold = 0.0, *args, **kwargs):
-        self.tiethreshold = tiethreshold
+    def __init__(self, *args, **kwargs):
         return super().__init__(*args, **kwargs)
         
 
-    def rank(self, ascending=True):
-        table = self.table._gettable()
+    def rank(self, weight = None, tiethreshold = 0.0, ascending=True):
+        if weight is None:
+            table = self.table._gettable().assign(weight=pd.Series(np.ones(self.table._table.shape[0], dtype=np.float)))
+        else:
+            table = self.table._table.merge(weight, how="inner", on=["host", "visit"])
+            table = table[["hidx", "vidx", "hscore", "vscore", "weight"]]
+            if table.shape[0]!=self.table._table.shape[0]:
+                raise ValueError("Given weight is not aligned with Table. Please invoke getitemlist() from Table to assign weight.")
+
         m = table.shape[0]
         n = self.table.itemnum
         y = np.zeros(m)
@@ -54,10 +60,12 @@ class MasseyRanker(UnsupervisedRanker):
         col = np.zeros(m*2, dtype=np.int)
         row = np.zeros(m*2, dtype=np.int)
         for i, itm in enumerate(table.itertuples(index=False, name=None)):
-            row[i*2]=i; col[i*2]=itm[0]; dat[i*2]=1;
-            row[i*2+1]=i; col[i*2+1]=itm[1]; dat[i*2+1]=-1;
-            y[i] = itm[2]-itm[3]
-        y[np.abs(y)<=self.tiethreshold]=0.0
+            row[i*2]=i; col[i*2]=itm[0]; dat[i*2]=itm[4];
+            row[i*2+1]=i; col[i*2+1]=itm[1]; dat[i*2+1]=-itm[4];
+            if np.abs(itm[2]-itm[3])<=tiethreshold:
+                y[i]=0.0
+            else:
+                y[i] = itm[4]*(itm[2]-itm[3])
     
         X = coo_matrix((dat, (row, col)), shape=(m, n))
         X = X.tocsr()
@@ -73,20 +81,24 @@ class MasseyRanker(UnsupervisedRanker):
 
         return self._showcase(ascending)
 
-    # for weight adjusting, users are allowed to provide a item-item-weight list to join with existing table.
-    # but, for user-item-score table, the solution has not come.
 
 class ColleyRanker(UnsupervisedRanker):
-    def __init__(self, tiethreshold = 0.0, *args, **kwargs):
-        self.tiethreshold = tiethreshold
+    def __init__(self, *args, **kwargs):
         return super().__init__(*args, **kwargs)
 
-    def rank(self, ascending=True):
-        table = self.table._gettable()
+    def rank(self, weight=None, tiethreshold = 0.0, ascending=True):
+        if weight is None:
+            table = self.table._gettable().assign(weight=pd.Series(np.ones(self.table._table.shape[0], dtype=np.float)))
+        else:
+            table = self.table._table.merge(weight, how="inner", on=["host", "visit"])
+            table = table[["hidx", "vidx", "hscore", "vscore", "weight"]]
+            if table.shape[0]!=self.table._table.shape[0]:
+                raise ValueError("Given weight is not aligned with Table. Please invoke getitemlist() from Table to assign weight.")
+
         idx = table.ix[:, :2]
         score = table.ix[:, 2:]
         C, b = fast_colley_build(np.require(idx, dtype=np.int32), np.require(score, dtype=np.float64), 
-                                 self.table.itemnum, self.tiethreshold)
+                                 self.table.itemnum, tiethreshold)
 
         rating = sp.linalg.solve(C, b)
         if hasattr(self, "rating"):
