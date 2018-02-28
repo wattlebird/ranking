@@ -11,8 +11,6 @@ sample_paired = pd.DataFrame({
         "rate2": [52, 24, 38, 45, 16, 17, 7, 5, 30, 52]
     }, columns=["primary", "secondary", "rate1", "rate2"])
 
-def csv_read_test():
-    data = Table("Data\\TourneyCompactResults.csv", col=[3,4,5,6], delimiter=',', hasheader=True)
-
 def df_read_test():
-    data = Table(sample_paired, col=[1,2,3,4])
+    data = Table(sample_paired, col=[0, 1, 2, 3])
+    data = Table(sample_paired, ['primary', 'secondary', 'rate1', 'rate2'])

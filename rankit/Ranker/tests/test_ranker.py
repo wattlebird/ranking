@@ -16,14 +16,14 @@ sample_paired = pd.DataFrame({
     }, columns=["primary", "secondary", "rate1", "rate2"])
 
 def colley_rank_test():
-    data = Table(sample_paired, col=[1,2,3,4])
+    data = Table(sample_paired, col=[0,1,2,3])
     r = ColleyRanker(table = data)
     rst = r.rank(ascending=False)
     assert_array_almost_equal(rst.loc[:, 'rating'].values, 
                               np.array([0.79, 0.65, 0.50, 0.36, 0.21]),decimal=2)
 
 def massey_rank_test():
-    data = Table(sample_paired, col=[1,2,3,4])
+    data = Table(sample_paired, col=[0,1,2,3])
     r = MasseyRanker(table = data)
     rst = r.rank(ascending=False)
     assert_array_almost_equal(rst.loc[:, 'rating'].values, 

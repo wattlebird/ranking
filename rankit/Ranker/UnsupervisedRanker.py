@@ -9,14 +9,14 @@ from .matrix_build import fast_colley_build
 class UnsupervisedRanker(object):
     """Base class for all unsupervised ranking algorithms."""
     def __init__(self, table, *args, **kwargs):
-        self.table = table
+        self.data = table
 
     def rank(self, *args, **kwargs):
         raise NotImplementedError("UnsupervisedRanker is a abstract class.")
 
     def _showcase(self, ascending=True):
         # one need to translate item index to item name.
-        indexlut = self.table.indexlut
+        indexlut = self.data.indexlut
         rating = self.rating # iitm, rating
         itemname = []
         for row in rating.itertuples(index=False, name=None):
@@ -44,17 +44,11 @@ class MasseyRanker(UnsupervisedRanker):
         return super().__init__(*args, **kwargs)
         
 
-    def rank(self, weight = None, tiethreshold = 0.0, ascending=True):
-        if weight is None:
-            table = self.table._gettable().assign(weight=pd.Series(np.ones(self.table._table.shape[0], dtype=np.float)))
-        else:
-            table = self.table._table.merge(weight, how="inner", on=["host", "visit"])
-            table = table[["hidx", "vidx", "hscore", "vscore", "weight"]]
-            if table.shape[0]!=self.table._table.shape[0]:
-                raise ValueError("Given weight is not aligned with Table. Please invoke getitemlist() from Table to assign weight.")
+    def rank(self, tiethreshold = 0.0, ascending=True):
+        table = self.data.table[['hidx', 'vidx', 'hscore', 'vscore', 'weight']]
 
         m = table.shape[0]
-        n = self.table.itemnum
+        n = self.data.itemnum
         y = np.zeros(m)
         dat = np.zeros(m*2, dtype=np.float)
         col = np.zeros(m*2, dtype=np.int)
@@ -76,7 +70,7 @@ class MasseyRanker(UnsupervisedRanker):
             self.rating["rating"] = rating
         else:
             self.rating = pd.DataFrame({
-                "iidx": np.arange(self.table.itemnum, dtype=np.int),
+                "iidx": np.arange(self.data.itemnum, dtype=np.int),
                 "rating": rating})
 
         return self._showcase(ascending)
@@ -86,26 +80,20 @@ class ColleyRanker(UnsupervisedRanker):
     def __init__(self, *args, **kwargs):
         return super().__init__(*args, **kwargs)
 
-    def rank(self, weight=None, tiethreshold = 0.0, ascending=True):
-        if weight is None:
-            table = self.table._gettable().assign(weight=pd.Series(np.ones(self.table._table.shape[0], dtype=np.float)))
-        else:
-            table = self.table._table.merge(weight, how="inner", on=["host", "visit"])
-            table = table[["hidx", "vidx", "hscore", "vscore", "weight"]]
-            if table.shape[0]!=self.table._table.shape[0]:
-                raise ValueError("Given weight is not aligned with Table. Please invoke getitemlist() from Table to assign weight.")
+    def rank(self, tiethreshold = 0.0, ascending=True):
+        table = self.data.table[['hidx', 'vidx', 'hscore', 'vscore', 'weight']]
 
-        idx = table.ix[:, :2]
-        score = table.ix[:, 2:]
+        idx = table.iloc[:, :2]
+        score = table.iloc[:, 2:]
         C, b = fast_colley_build(np.require(idx, dtype=np.int32), np.require(score, dtype=np.float64), 
-                                 self.table.itemnum, tiethreshold)
+                                 self.data.itemnum, tiethreshold)
 
         rating = sp.linalg.solve(C, b)
         if hasattr(self, "rating"):
             self.rating["rating"] = rating
         else:
             self.rating = pd.DataFrame({
-                "iidx": np.arange(self.table.itemnum, dtype=np.int),
+                "iidx": np.arange(self.data.itemnum, dtype=np.int),
                 "rating": rating})
 
         return self._showcase(ascending)

@@ -10,37 +10,30 @@ class Table(object):
     Table accepts <item1, item2, score1, score2> formatted input in pandas.dataframe/tsv/csv...
     """
 
-    def __init__(self, data, col=[1,2,3,4], encoding="utf_8", delimiter='\t', hasheader=False):
+    def __init__(self, data, col, weightcol=None, timecol=None, encoding="utf_8", delimiter='\t', hasheader=False):
         if len(col)!=4:
             raise ValueError("Parameter col must have four values, indicating columns for host, visit, host score and visit score.")
-        col = [itm-1 for itm in col]
+        if (not all(isinstance(i, str) for i in col)) and (not all(isinstance(i, int) for i in col)):
+            raise ValueError("The type of col elements should be string or int.")
+        if not isinstance(data, pd.DataFrame):
+            raise ValueError("data should be pandas dataframe.")
 
-        if isinstance(data, str):
-            val = []
-            with open(data, newline='', encoding=encoding) as fr:
-                iterreader = csv.reader(fr, delimiter=delimiter)
-                if hasheader:
-                    next(iterreader)
-                for row in iterreader:
-                    val.append([row[i] for i in col])
-            host, visit, hscore, vscore = zip(*val)
-            raw_table = pd.DataFrame({
-                "host": host,
-                "visit": visit,
-                "hscore": np.require(hscore, dtype=np.float),
-                "vscore": np.require(vscore, dtype=np.float)
-                }, columns=["host", "visit", "hscore", "vscore"])
-        elif isinstance(data, pd.DataFrame):
-            raw_table = data.ix[:, col].copy()
-            raw_table.columns = ["host", "visit", "hscore", "vscore"]
-            raw_table.loc[:, ["hscore", "vscore"]] = raw_table.loc[:, ["hscore", "vscore"]].apply(pd.to_numeric)
+        raw_table = data.iloc[:, col].copy() if all(isinstance(i, int) for i in col) else data.loc[:, col].copy()
+        raw_table.columns = ["host", "visit", "hscore", "vscore"]
+        raw_table.loc[:, ["hscore", "vscore"]] = raw_table.loc[:, ["hscore", "vscore"]].apply(pd.to_numeric)
 
-        self.table = raw_table.dropna()
+        if weightcol is not None:
+            raw_table['weight'] = data.iloc[:, weightcol].copy() if isinstance(weightcol, int) else data.loc[:, weightcol].copy()
+        else:
+            raw_table['weight'] = 1.0
+        
+        if timecol is not None:
+            raw_table['time'] = data.iloc[:, timecol].copy() if isinstance(timecol, int) else data.loc[:, timecol].copy()
 
         itemlut = dict()
         indexlut = []
         idx = 0
-        for row in self.table.itertuples(index=False, name=None):
+        for row in raw_table.itertuples(index=False, name=None):
             if not row[0] in itemlut:
                 itemlut[row[0]] = idx
                 indexlut.append(row[0])
@@ -55,27 +48,16 @@ class Table(object):
         self.itemnum = idx
 
         # raw table need to be converted to standard indexed table.
-        hidx = np.require(list(map(lambda x: itemlut[x], raw_table["host"].tolist())), dtype=np.int)
-        vidx = np.require(list(map(lambda x: itemlut[x], raw_table["visit"].tolist())), dtype=np.int)
-        table = pd.DataFrame({
-            "host": raw_table["host"],
-            "visit": raw_table["visit"],
-            "hidx": hidx,
-            "vidx": vidx,
-            "hscore": raw_table["hscore"],
-            "vscore": raw_table["vscore"],
-        }, columns=["host", "visit", "hidx", "vidx", "hscore", "vscore"])
+        raw_table['hidx'] = np.require(list(map(lambda x: itemlut[x], raw_table["host"].tolist())), dtype=np.int)
+        raw_table['vidx'] = np.require(list(map(lambda x: itemlut[x], raw_table["visit"].tolist())), dtype=np.int)
 
-        self._table = table
-    
-    def gettable(self):
-        return self.table.copy()
+        self.table = raw_table
 
     def getitemlist(self):
         return self.table.loc[:, ["host", "visit"]].copy()
 
     def _gettable(self):
-        return self._table.loc[:, ["hidx", "vidx", "hscore", "vscore"]]
+        return self.table.loc[:, ["hidx", "vidx", "hscore", "vscore"]]
     
     def __repr__(self):
-        return "Table with provided data:\n"+self.gettable().__repr__()
+        return "Table with provided data:\n"+self.table[['host', 'visit', 'hscore', 'vscore']].__repr__()

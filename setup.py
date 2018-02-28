@@ -21,10 +21,6 @@ ext_modules=[
             include_dirs=[numpy.get_include()],
             libraries=[]
   ),
-  Extension("rankit.Table.convert",
-            ["rankit/Table/convert.pyx"],
-            include_dirs=[numpy.get_include()]
-  ),
   Extension("rankit.Ranker.matrix_build",
             ["rankit/Ranker/matrix_build.pyx"],
             include_dirs=[numpy.get_include()]
