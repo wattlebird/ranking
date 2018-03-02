@@ -10,7 +10,7 @@ class Table(object):
     Table accepts <item1, item2, score1, score2> formatted input in pandas.dataframe/tsv/csv...
     """
 
-    def __init__(self, data, col, weightcol=None, timecol=None, encoding="utf_8", delimiter='\t', hasheader=False):
+    def __init__(self, data, col, weightcol=None, timecol=None):
         if len(col)!=4:
             raise ValueError("Parameter col must have four values, indicating columns for host, visit, host score and visit score.")
         if (not all(isinstance(i, str) for i in col)) and (not all(isinstance(i, int) for i in col)):

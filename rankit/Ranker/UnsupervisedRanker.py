@@ -5,6 +5,7 @@ from rankit.Table import Table
 from scipy.sparse import coo_matrix
 from scipy.sparse.linalg import lsqr
 from .matrix_build import fast_colley_build
+from numpy.linalg import norm
 
 class UnsupervisedRanker(object):
     """Base class for all unsupervised ranking algorithms."""
@@ -96,4 +97,42 @@ class ColleyRanker(UnsupervisedRanker):
                 "iidx": np.arange(self.data.itemnum, dtype=np.int),
                 "rating": rating})
 
+        return self._showcase(ascending)
+
+class KeenerRanker(UnsupervisedRanker):
+    def __init__(self, *args, **kwargs):
+        return super().__init__(*args, **kwargs)
+    
+    def rank(self, func=None, epsilon=1e-4, threshold=1e-4, ascending=True):
+        mtx = pd.DataFrame(data={
+            'hidx': pd.concat([self.data.table.hidx, self.data.table.vidx]),
+            'vidx': pd.concat([self.data.table.vidx, self.data.table.hidx]),
+            'hscore': pd.concat([self.data.table.hscore, self.data.table.vscore]),
+            'vscore': pd.concat([self.data.table.vscore, self.data.table.hscore])
+        }, columns = ['hidx', 'vidx', 'hscore', 'vscore']).reset_index(drop=True)
+        mtx['score'] = mtx.hscore+mtx.vscore
+        mtx['hscore'] = (mtx['hscore']+1)/(mtx['score']+2)
+        mtx['vscore'] = (mtx['vscore']+1)/(mtx['score']+2)
+        if func is not None:
+            mtx['hscore'] = mtx.hscore.apply(func)
+            mtx['vscore'] = mtx.vscore.apply(func)
+        mtx = mtx.groupby(['hidx', 'vidx'])[['hscore', 'vscore']].mean()
+        mtx.reset_index(inplace=True)
+
+        D = coo_matrix((mtx.hscore.values, (mtx.hidx.values, mtx.vidx.values)), shape=(rTable.itemnum, rTable.itemnum)).tocsr()
+
+        r = np.ones(rTable.itemnum)/rTable.itemnum
+        pr = np.ones(rTable.itemnum)
+        while norm(pr-r)>threshold:
+            pr = r
+            rho = np.sum(r)*epsilon
+            r = D.dot(r)+rho*np.ones(rTable.itemnum)
+            r /= np.sum(r)
+
+        if hasattr(self, "rating"):
+            self.rating["rating"] = r
+        else:
+            self.rating = pd.DataFrame({
+                "iidx": np.arange(self.data.itemnum, dtype=np.int),
+                "rating": rating})
         return self._showcase(ascending)
