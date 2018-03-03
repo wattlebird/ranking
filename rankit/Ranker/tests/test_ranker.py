@@ -1,7 +1,7 @@
 from numpy.testing import assert_array_equal, assert_array_almost_equal
 from numpy.testing import assert_almost_equal
 from nose.tools import assert_raises, assert_true, assert_equal, assert_false
-from rankit.Ranker import ColleyRanker, MasseyRanker
+from rankit.Ranker import ColleyRanker, MasseyRanker, KeenerRanker, MarkovRanker, ODRanker, DifferenceRanker
 from rankit.Table import Table
 import numpy as np
 import pandas as pd
@@ -29,3 +29,36 @@ def massey_rank_test():
     assert_array_almost_equal(rst.loc[:, 'rating'].values, 
                               np.array([18.2, 18.0, -3.4, -8.0, -24.8]),decimal=2)
 
+def keener_rank_test():
+    data = Table(sample_paired, col=[0,1,2,3])
+    r = KeenerRanker(table = data)
+    rst = r.rank(ascending=False)
+    print('Keener rank:')
+    print(rst)
+
+def markov_rank_test():
+    data = Table(sample_paired, col=[0,1,2,3])
+    r = MarkovRanker(table = data)
+    rst = r.rank(ascending=False)
+    print('Markov rank:')
+    print(rst)
+
+def od_rank_test():
+    data = Table(sample_paired, col=[0,1,2,3])
+    r = ODRanker(table = data)
+    rst = r.rank(output='summary', ascending=False)
+    print('OD rank: overall rank:')
+    print(rst)
+    rst = r.rank(output='offence', ascending=False)
+    print('OD rank: offence rank:')
+    print(rst)
+    rst = r.rank(output='defence', ascending=True)
+    print('OD rank: defence rank:')
+    print(rst)
+
+def difference_rank_test():
+    data = Table(sample_paired, col=[0,1,2,3])
+    r = DifferenceRanker(table = data)
+    rst = r.rank(ascending=False)
+    print('Difference rank:')
+    print(rst)

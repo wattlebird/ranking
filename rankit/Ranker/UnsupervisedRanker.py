@@ -9,13 +9,14 @@ from numpy.linalg import norm
 
 class UnsupervisedRanker(object):
     """Base class for all unsupervised ranking algorithms."""
-    def __init__(self, table, *args, **kwargs):
+    def __init__(self, table, method='min', *args, **kwargs):
         self.data = table
+        self.method = method
 
     def rank(self, *args, **kwargs):
         raise NotImplementedError("UnsupervisedRanker is a abstract class.")
 
-    def _showcase(self, ascending=True):
+    def _showcase(self, ascending=False):
         # one need to translate item index to item name.
         indexlut = self.data.indexlut
         rating = self.rating # iitm, rating
@@ -25,20 +26,8 @@ class UnsupervisedRanker(object):
         rst = pd.DataFrame({
             "name": itemname,
             "rating": rating["rating"]})
-        rst = rst.sort_values(by='rating', ascending=ascending).reset_index(drop=True)
-        rst['rank'] = pd.Series(self._get_true_rank(rst), dtype='int32')
-        return rst
-
-    def _get_true_rank(self, rankedtable):
-        # rankedtable: ['title', 'rate']
-        r = np.zeros(rankedtable.shape[0], dtype = np.int32)
-        r[0]=1;
-        for i in range(1, rankedtable.shape[0]):
-            if rankedtable.iloc[i, 1]!=rankedtable.iloc[i-1, 1]:
-                r[i]=i+1
-            else:
-                r[i]=r[i-1]
-        return r
+        rst['rank'] = rst.rating.rank(method=self.method, ascending=ascending).astype(np.int32)
+        return rst.sort_values(by=['rating', 'name'], ascending=ascending).reset_index(drop=True)
 
 class MasseyRanker(UnsupervisedRanker):
     def __init__(self, *args, **kwargs):
