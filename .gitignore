@@ -71,3 +71,6 @@ Data/
 example/bangumi/*.bin
 example/bangumi/setting.py
 *.pkl
+
+# Debug file
+main.py
