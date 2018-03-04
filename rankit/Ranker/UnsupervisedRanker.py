@@ -1,3 +1,4 @@
+from __future__ import division
 import numpy as np
 import pandas as pd
 import scipy as sp
@@ -9,7 +10,7 @@ from numpy.linalg import norm
 
 class UnsupervisedRanker(object):
     """Base class for all unsupervised ranking algorithms."""
-    def __init__(self, table, method='min', *args, **kwargs):
+    def __init__(self, table, method):
         self.data = table
         self.method = method
 
@@ -30,8 +31,8 @@ class UnsupervisedRanker(object):
         return rst.sort_values(by=['rating', 'name'], ascending=ascending).reset_index(drop=True)
 
 class MasseyRanker(UnsupervisedRanker):
-    def __init__(self, *args, **kwargs):
-        return super().__init__(*args, **kwargs)
+    def __init__(self, table, method='min'):
+        return super().__init__(table, method)
         
 
     def rank(self, tiethreshold = 0.0, ascending=True):
@@ -67,8 +68,8 @@ class MasseyRanker(UnsupervisedRanker):
 
 
 class ColleyRanker(UnsupervisedRanker):
-    def __init__(self, *args, **kwargs):
-        return super().__init__(*args, **kwargs)
+    def __init__(self, table, method='min'):
+        return super().__init__(table, method)
 
     def rank(self, tiethreshold = 0.0, ascending=True):
         table = self.data.table[['hidx', 'vidx', 'hscore', 'vscore', 'weight']]
@@ -89,8 +90,8 @@ class ColleyRanker(UnsupervisedRanker):
         return self._showcase(ascending)
 
 class KeenerRanker(UnsupervisedRanker):
-    def __init__(self, *args, **kwargs):
-        return super().__init__(*args, **kwargs)
+    def __init__(self, table, method='min'):
+        return super().__init__(table, method)
     
     def rank(self, func=None, epsilon=1e-4, threshold=1e-4, ascending=True):
         mtx = pd.DataFrame(data={
@@ -130,8 +131,8 @@ class KeenerRanker(UnsupervisedRanker):
         return self._showcase(ascending)
 
 class MarkovRanker(UnsupervisedRanker):
-    def __init__(self, *args, **kwargs):
-        return super().__init__(*args, **kwargs)
+    def __init__(self, table, method='min'):
+        return super().__init__(table, method)
     
     def rank(self, restart=0.3, threshold=1e-4, ascending=True):
         if restart>1 or restart<0:
@@ -167,8 +168,8 @@ class MarkovRanker(UnsupervisedRanker):
         return self._showcase(ascending)
 
 class ODRanker(UnsupervisedRanker):
-    def __init__(self, *args, **kwargs):
-        return super().__init__(*args, **kwargs)
+    def __init__(self, table, method='min'):
+        return super().__init__(table, method)
     
     def rank(self, output='summary', epsilon=1e-4, threshold=1e-4, ascending=True):
         mtx = pd.DataFrame(data={
@@ -211,8 +212,8 @@ class ODRanker(UnsupervisedRanker):
         return self._showcase(ascending)
 
 class DifferenceRanker(UnsupervisedRanker):
-    def __init__(self, *args, **kwargs):
-        return super().__init__(*args, **kwargs)
+    def __init__(self, table, method='min'):
+        return super().__init__(table, method)
 
     def rank(self, ascending=True):
         mtx = pd.DataFrame(data={
@@ -235,3 +236,54 @@ class DifferenceRanker(UnsupervisedRanker):
                 "iidx": np.arange(self.data.itemnum, dtype=np.int),
                 "rating": r})
         return self._showcase(ascending)
+
+class EloRanker(UnsupervisedRanker):
+    def __init__(self, table, method='min'):
+        if not table.table.columns.contains('time'):
+            raise ValueError('The passed in table has no time information provided.')
+        return super().__init__(table, method)
+
+    def rank(self, K = 10, baseline = 0, xi=400, ascending=True):
+        self.xi = xi
+        rating = baseline*np.ones(self.data.itemnum)
+        t = self.data.table.sort_values(by='time', ascending=True)
+        # refer to https://fivethirtyeight.com/features/how-we-calculate-nba-elo-ratings/ for margin involvement
+        for itm in t.itertuples():
+            s = 0.5 if itm.hscore == itm.vscore else (1 if itm.hscore > itm.vscore else 0)
+            ha = 0 if itm.hostavantage<0 else itm.hostavantage
+            va = 0 if itm.hostavantage>0 else -itm.hostavantage
+            phwin = 1/(1+10**((rating[itm.vidx] + va - rating[itm.hidx] - ha)/xi))
+            pvwin = 1/(1+10**((rating[itm.hidx] + ha - rating[itm.vidx] - va)/xi))
+            hmargin = (abs(itm.hscore-itm.vscore)+3)**0.8/(7.5+0.0006*(rating[itm.hidx] + ha - rating[itm.vidx] - va))
+            vmargin = (abs(itm.hscore-itm.vscore)+3)**0.8/(7.5+0.0006*(rating[itm.vidx] + va - rating[itm.hidx] - ha))
+            rating[itm.hidx] = K*itm.weight*hmargin*(s-phwin)+rating[itm.hidx]
+            rating[itm.vidx] = K*itm.weight*vmargin*(1-s-pvwin)+rating[itm.vidx]
+        
+        if hasattr(self, "rating"):
+            self.rating["rating"] = rating
+        else:
+            self.rating = pd.DataFrame({
+                "iidx": np.arange(self.data.itemnum, dtype=np.int),
+                "rating": rating})
+        return self._showcase(ascending)
+
+    def prob_win(self, host, visit):
+        if not hasattr(self, 'rating'):
+            return RuntimeError('No rating information calculated. Please involke rank first.')
+        
+        r = self.rating.rating.values
+        if isinstance(host, np.ndarray) and host.ndim==1:
+            host = host.tolist()
+        if isinstance(visit, np.ndarray) and visit.ndim==1:
+            visit = visit.tolist()
+        if isinstance(host, list) and isinstance(visit, list):
+            rst = []
+            for rawh, rawv in zip(host, visit):
+                h = self.data.itemlut[rawh]
+                v = self.data.itemlut[rawv]
+                rst.append(1/(1+10**((r[v]-r[h])/self.xi)))
+            return rst
+        else:
+            h = self.data.itemlut[host]
+            v = self.data.itemlut[visit]
+            return 1/(1+10**((r[v]-r[h])/self.xi))

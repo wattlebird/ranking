@@ -1,7 +1,7 @@
 from numpy.testing import assert_array_equal, assert_array_almost_equal
 from numpy.testing import assert_almost_equal
 from nose.tools import assert_raises, assert_true, assert_equal, assert_false
-from rankit.Ranker import ColleyRanker, MasseyRanker, KeenerRanker, MarkovRanker, ODRanker, DifferenceRanker
+from rankit.Ranker import *
 from rankit.Table import Table
 import numpy as np
 import pandas as pd

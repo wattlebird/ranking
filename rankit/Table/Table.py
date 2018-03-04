@@ -10,7 +10,7 @@ class Table(object):
     Table accepts <item1, item2, score1, score2> formatted input in pandas.dataframe/tsv/csv...
     """
 
-    def __init__(self, data, col, weightcol=None, timecol=None):
+    def __init__(self, data, col, weightcol=None, timecol=None, hostavantagecol=None):
         if len(col)!=4:
             raise ValueError("Parameter col must have four values, indicating columns for host, visit, host score and visit score.")
         if (not all(isinstance(i, str) for i in col)) and (not all(isinstance(i, int) for i in col)):
@@ -29,6 +29,11 @@ class Table(object):
         
         if timecol is not None:
             raw_table['time'] = data.iloc[:, timecol].copy() if isinstance(timecol, int) else data.loc[:, timecol].copy()
+        
+        if hostavantagecol is not None:
+            raw_table['hostavantage'] = data.iloc[:, hostavantagecol].copy() if isinstance(hostavantagecol, int) else data.loc[:, hostavantagecol].copy()
+        else:
+            raw_table['hostavantage'] = 0.0
 
         itemlut = dict()
         indexlut = []

@@ -11,16 +11,6 @@ with open('requirements.txt') as f:
     required = f.read().splitlines()
 
 ext_modules=[
-  Extension("rankit.util.fast_converter",
-            ["rankit/util/fast_converter.pyx"],
-            include_dirs=[numpy.get_include()],
-            libraries=[]
-  ),
-  Extension("rankit.manager.fast_list_matrix",
-            ["rankit/manager/fast_list_matrix.pyx"],
-            include_dirs=[numpy.get_include()],
-            libraries=[]
-  ),
   Extension("rankit.Ranker.matrix_build",
             ["rankit/Ranker/matrix_build.pyx"],
             include_dirs=[numpy.get_include()]
@@ -28,16 +18,15 @@ ext_modules=[
 ]
 
 setup(name="rankit",
-      version="0.1.1",
+      version="0.2",
       packages=find_packages(exclude=['example']),
       install_requires=required,
       include_package_data=True,
-      description="A linear algebra based ranking solution",
+      description="A library providing competition ranking solutions.",
       author="Ronnie Wang",
       author_email="geniusxiaoguai@gmail.com",
       url="http://github.com/wattlebird/ranking",
       license="MIT",
-      use_2to3=True,
       ext_modules=cythonize(ext_modules),
       classifiers=['Intended Audience :: Science/Research',
                    'Intended Audience :: Developers',
