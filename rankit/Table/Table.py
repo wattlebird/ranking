@@ -18,7 +18,7 @@ class Table(object):
         if not isinstance(data, pd.DataFrame):
             raise ValueError("data should be pandas dataframe.")
 
-        raw_table = data.iloc[:, col].copy() if all(isinstance(i, int) for i in col) else data.loc[:, col].copy()
+        raw_table = data.iloc[:, col].copy() if all(isinstance(i, int) for i in col) else data[col].copy()
         raw_table.columns = ["host", "visit", "hscore", "vscore"]
         raw_table.loc[:, ["hscore", "vscore"]] = raw_table.loc[:, ["hscore", "vscore"]].apply(pd.to_numeric)
 
@@ -58,11 +58,30 @@ class Table(object):
 
         self.table = raw_table
 
+    def update(self, table):
+        # update itemlut, indexlut, itemnum
+        p = len(self.indexlut)
+        for k,v in table.itemlut.items():
+            if self.itemlut.get(k) is None:
+                self.itemlut[k] = p
+                self.indexlut.append(k)
+                p += 1
+        self.itemnum = p
+
+        # update self.table
+        table.table.hidx = table.table.host.apply(lambda x: self.itemlut[x])
+        table.table.vidx = table.table.visit.apply(lambda x: self.itemlut[x])
+        if table.table.columns.contains('time') and self.table.columns.contains('time') and \
+            table.table.time.min()<self.table.time.max():
+            raise ValueError('Given record\'s time should be no earlier than existing record.')
+        self.table = pd.concat([self.table, table.table], ignore_index=True)
+
+
     def getitemlist(self):
-        return self.table.loc[:, ["host", "visit"]].copy()
+        return self.table[["host", "visit"]].copy()
 
     def _gettable(self):
-        return self.table.loc[:, ["hidx", "vidx", "hscore", "vscore"]]
+        return self.table[["hidx", "vidx", "hscore", "vscore"]]
     
     def __repr__(self):
         return "Table with provided data:\n"+self.table[['host', 'visit', 'hscore', 'vscore']].__repr__()

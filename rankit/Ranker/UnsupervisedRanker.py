@@ -245,6 +245,8 @@ class EloRanker(UnsupervisedRanker):
 
     def rank(self, K = 10, baseline = 0, xi=400, ascending=True):
         self.xi = xi
+        self.K = K
+        self.baseline = baseline
         rating = baseline*np.ones(self.data.itemnum)
         t = self.data.table.sort_values(by='time', ascending=True)
         # refer to https://fivethirtyeight.com/features/how-we-calculate-nba-elo-ratings/ for margin involvement
@@ -253,11 +255,10 @@ class EloRanker(UnsupervisedRanker):
             ha = 0 if itm.hostavantage<0 else itm.hostavantage
             va = 0 if itm.hostavantage>0 else -itm.hostavantage
             phwin = 1/(1+10**((rating[itm.vidx] + va - rating[itm.hidx] - ha)/xi))
-            pvwin = 1/(1+10**((rating[itm.hidx] + ha - rating[itm.vidx] - va)/xi))
             hmargin = (abs(itm.hscore-itm.vscore)+3)**0.8/(7.5+0.0006*(rating[itm.hidx] + ha - rating[itm.vidx] - va))
-            vmargin = (abs(itm.hscore-itm.vscore)+3)**0.8/(7.5+0.0006*(rating[itm.vidx] + va - rating[itm.hidx] - ha))
-            rating[itm.hidx] = K*itm.weight*hmargin*(s-phwin)+rating[itm.hidx]
-            rating[itm.vidx] = K*itm.weight*vmargin*(1-s-pvwin)+rating[itm.vidx]
+            delta = K*itm.weight*hmargin*(s-phwin)
+            rating[itm.hidx] += delta
+            rating[itm.vidx] -= delta
         
         if hasattr(self, "rating"):
             self.rating["rating"] = rating
@@ -287,3 +288,5 @@ class EloRanker(UnsupervisedRanker):
             h = self.data.itemlut[host]
             v = self.data.itemlut[visit]
             return 1/(1+10**((r[v]-r[h])/self.xi))
+    
+    def update(self, newtable)
