@@ -247,6 +247,7 @@ class EloRanker(UnsupervisedRanker):
         self.xi = xi
         self.K = K
         self.baseline = baseline
+        self.ascending = ascending
         rating = baseline*np.ones(self.data.itemnum)
         t = self.data.table.sort_values(by='time', ascending=True)
         # refer to https://fivethirtyeight.com/features/how-we-calculate-nba-elo-ratings/ for margin involvement
@@ -289,4 +290,24 @@ class EloRanker(UnsupervisedRanker):
             v = self.data.itemlut[visit]
             return 1/(1+10**((r[v]-r[h])/self.xi))
     
-    def update(self, newtable)
+    def update(self, newtable):
+        xi, K, baseline, ascending = self.xi, self.K, self.baseline, self.ascending
+        self.data.update(newtable)
+        rating = baseline*np.ones(self.data.itemnum)
+        for itm in self.rating.itertuples():
+            rating[itm.iidx] = itm.rating
+        t = newtable.table.sort_values(by='time', ascending=True)
+        for itm in t.itertuples():
+            s = 0.5 if itm.hscore == itm.vscore else (1 if itm.hscore > itm.vscore else 0)
+            ha = 0 if itm.hostavantage<0 else itm.hostavantage
+            va = 0 if itm.hostavantage>0 else -itm.hostavantage
+            phwin = 1/(1+10**((rating[itm.vidx] + va - rating[itm.hidx] - ha)/xi))
+            hmargin = (abs(itm.hscore-itm.vscore)+3)**0.8/(7.5+0.0006*(rating[itm.hidx] + ha - rating[itm.vidx] - va))
+            delta = K*itm.weight*hmargin*(s-phwin)
+            rating[itm.hidx] += delta
+            rating[itm.vidx] -= delta
+
+        self.rating = pd.DataFrame({
+            "iidx": np.arange(self.data.itemnum, dtype=np.int),
+            "rating": rating})
+        return self._showcase(ascending)

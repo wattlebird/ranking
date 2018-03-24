@@ -1,5 +1,5 @@
 from numpy.testing import assert_array_equal, assert_array_almost_equal
-from numpy.testing import assert_almost_equal
+from numpy.testing import assert_almost_equal, assert_raises
 from nose.tools import assert_raises, assert_true, assert_equal, assert_false
 from rankit.Ranker import *
 from rankit.Table import Table
@@ -9,11 +9,27 @@ import pandas as pd
 
 # toy testcase
 sample_paired = pd.DataFrame({
-        "primary": ["Duke", "Duke", "Duke", "Duke", "Miami", "Miami", "Miami", "UNC", "UNC", "UVA"], 
-        "secondary": ["Miami", "UNC", "UVA", "VT", "UNC", "UVA", "VT", "UVA", "VT", "VT"],
-        "rate1": [7, 21, 7, 0, 34, 25, 27, 7, 3, 14],
-        "rate2": [52, 24, 38, 45, 16, 17, 7, 5, 30, 52]
-    }, columns=["primary", "secondary", "rate1", "rate2"])
+    "primary": ["Duke", "Duke", "Duke", "Duke", "Miami", "Miami", "Miami", "UNC", "UNC", "UVA"], 
+    "secondary": ["Miami", "UNC", "UVA", "VT", "UNC", "UVA", "VT", "UVA", "VT", "VT"],
+    "rate1": [7, 21, 7, 0, 34, 25, 27, 7, 3, 14],
+    "rate2": [52, 24, 38, 45, 16, 17, 7, 5, 30, 52]
+}, columns=["primary", "secondary", "rate1", "rate2"])
+
+sample_with_time_1 = pd.DataFrame({
+    'primary': [1,1,4,2,3,4,1,2],
+    'secondary': [2,3,1,4,2,3,4,3],
+    'rate1': [7,6,8,4,3,5,7,0],
+    'rate2': [5,5,4,4,4,1,7,1],
+    'date': [1,1,2,2,3,3,4,4]
+}, columns=['primary', 'secondary', 'rate1', 'rate2', 'date'])
+
+sample_with_time_2 = pd.DataFrame({
+    'primary': [2,4,2,4],
+    'secondary': [1,1,3,3],
+    'rate1': [6,6,3,2],
+    'rate2': [5,4,3,1],
+    'date': [5,6,7,8]
+}, columns=['primary', 'secondary', 'rate1', 'rate2', 'date'])
 
 def colley_rank_test():
     data = Table(sample_paired, col=[0,1,2,3])
@@ -62,3 +78,22 @@ def difference_rank_test():
     rst = r.rank(ascending=False)
     print('Difference rank:')
     print(rst)
+
+def elo_rank_test():
+    data = Table(sample_with_time_1, col=['primary', 'secondary', 'rate1', 'rate2'], timecol='date')
+    ranker = EloRanker(data)
+    ranker.rank(ascending=False)
+
+def eld_rank_update_test():
+    data1 = Table(sample_with_time_1, col=['primary', 'secondary', 'rate1', 'rate2'], timecol='date')
+    data2 = Table(sample_with_time_2, col=['primary', 'secondary', 'rate1', 'rate2'], timecol='date')
+    ranker = EloRanker(data1)
+    r0 = ranker.rank(ascending=False)
+    r1 = ranker.update(data2)
+
+    data3 = Table(pd.concat([sample_with_time_1, sample_with_time_2]), col=['primary', 'secondary', 'rate1', 'rate2'], timecol='date')
+    ranker = EloRanker(data3)
+    r2 = ranker.rank(ascending=False)
+
+    assert_almost_equal(r1.rating.values, r2.rating.values)
+    assert_raises(AssertionError, assert_array_equal, r0.rating.values, r2.rating.values)
