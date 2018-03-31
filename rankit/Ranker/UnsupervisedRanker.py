@@ -1,4 +1,5 @@
 from __future__ import division
+from __future__ import absolute_import
 import numpy as np
 import pandas as pd
 import scipy as sp
@@ -31,11 +32,35 @@ class UnsupervisedRanker(object):
         return rst.sort_values(by=['rating', 'name'], ascending=ascending).reset_index(drop=True)
 
 class MasseyRanker(UnsupervisedRanker):
+    """Massey ranking system proposed by Kenneth Massey: Statistical models applied to the rating of sports teams. 
+    Bachelor's thesis, Bluefield College, 1997.
+    Core idea: The competition score difference is the rating difference, so one can solve a linear equation by minimize least square error.
+
+    Parameters
+    ----------
+    table: Table object containing pairs of teams' playing scores, with optional weights.
+    method: {'average', 'min', 'max', 'first', 'dense'}, default 'min'
+        The method to calculate rank when draws happens in calculated rating.
+        Same parameter described in pandas.Series.rank: https://pandas.pydata.org/pandas-docs/stable/generated/pandas.Series.rank.html
+    """
     def __init__(self, table, method='min'):
         return super().__init__(table, method)
         
 
-    def rank(self, tiethreshold = 0.0, ascending=True):
+    def rank(self, tiethreshold = 0.0, ascending=False):
+        """Calculate the rank and rating with specified parameters.
+
+        Parameters
+        ----------
+        tiethreshold: [0, +Inf), default 0.
+            When absolute difference between two teams are smaller than tiethreshold, this competition is considered as a tie.
+        ascending: bool. default False.
+            If set to True, the smaller the rating, the smaller the rank. For Massey rank it should be False.
+        
+        Returns
+        -------
+        pandas.DataFrame, with column ['name', 'rating', 'rank']
+        """
         table = self.data.table[['hidx', 'vidx', 'hscore', 'vscore', 'weight']]
 
         m = table.shape[0]
@@ -68,10 +93,36 @@ class MasseyRanker(UnsupervisedRanker):
 
 
 class ColleyRanker(UnsupervisedRanker):
+    """Colley ranking system proposed by Wesley Colley: 
+    Colley's bias free college football ranking method: The colley matrix explained, 2002.
+    http://www.colleyrankings.com
+    Core idea: All team's rating starts from 0.5, and with evolvement of games, the rating of each player deviates from 0.5
+    according to probability of win. However, the average rating of all teams remains 0.5.
+
+    Parameters
+    ----------
+    table: Table object containing pairs of teams' playing scores, with optional weights.
+    method: {'average', 'min', 'max', 'first', 'dense'}, default 'min'
+        The method to calculate rank when draws happens in calculated rating.
+        Same parameter described in pandas.Series.rank: https://pandas.pydata.org/pandas-docs/stable/generated/pandas.Series.rank.html
+    """
     def __init__(self, table, method='min'):
         return super().__init__(table, method)
 
-    def rank(self, tiethreshold = 0.0, ascending=True):
+    def rank(self, tiethreshold = 0.0, ascending=False):
+        """Calculate the rank and rating with specified parameters.
+
+        Parameters
+        ----------
+        tiethreshold: [0, +Inf), default 0.
+            When absolute difference between two teams are smaller than tiethreshold, this competition is considered as a tie.
+        ascending: bool. default False.
+            If set to True, the smaller the rating, the smaller the rank. For Colley rank it should be False.
+        
+        Returns
+        -------
+        pandas.DataFrame, with column ['name', 'rating', 'rank']
+        """
         table = self.data.table[['hidx', 'vidx', 'hscore', 'vscore', 'weight']]
 
         idx = table.iloc[:, :2]
@@ -90,10 +141,38 @@ class ColleyRanker(UnsupervisedRanker):
         return self._showcase(ascending)
 
 class KeenerRanker(UnsupervisedRanker):
+    """Keener ranking system proposed by James Keener:
+    The Perron-Frobenius theorem and the ranking of football teams, SIAM Review, 35(1):80-93, 1993
+    The core idea are: 1. rating is proportional to real strength; 2. real strength is measured relatively by competitors' strength.
+
+    Parameters
+    ----------
+    table: Table object containing pairs of teams' playing scores, with optional weights.
+    method: {'average', 'min', 'max', 'first', 'dense'}, default 'min'
+        The method to calculate rank when draws happens in calculated rating.
+        Same parameter described in pandas.Series.rank: https://pandas.pydata.org/pandas-docs/stable/generated/pandas.Series.rank.html
+    """
     def __init__(self, table, method='min'):
         return super().__init__(table, method)
     
-    def rank(self, func=None, epsilon=1e-4, threshold=1e-4, ascending=True):
+    def rank(self, func=None, epsilon=1e-4, threshold=1e-4, ascending=False):
+        """Calculate the rank and rating with specified parameters.
+
+        Parameters
+        ----------
+        func: default None.
+            If set, the score difference should be transformed by the function first then used for rating calculation.
+        epsilon: [0, +Inf) default 1e-4
+            The small value that applies an interference to game result that force each team had at least one game with each other.
+        threshold: (0, +Inf), default 1e-4
+            The threshold that controls when the algorithm will converge.
+        ascending: bool. default False.
+            If set to True, the smaller the rating, the smaller the rank. For Keener rank it should be False.
+        
+        Returns
+        -------
+        pandas.DataFrame, with column ['name', 'rating', 'rank']
+        """
         mtx = pd.DataFrame(data={
             'hidx': pd.concat([self.data.table.hidx, self.data.table.vidx]),
             'vidx': pd.concat([self.data.table.vidx, self.data.table.hidx]),
@@ -131,10 +210,36 @@ class KeenerRanker(UnsupervisedRanker):
         return self._showcase(ascending)
 
 class MarkovRanker(UnsupervisedRanker):
+    """Markov ranking is actually PageRank.
+    The core idea is voting: in each game, each team will vote to each other by the number of scores they lost.
+    If there are multiple games for a certain pair of player, their scores will be grouped and averaged.
+
+    Parameters
+    ----------
+    table: Table object containing pairs of teams' playing scores, with optional weights.
+    method: {'average', 'min', 'max', 'first', 'dense'}, default 'min'
+        The method to calculate rank when draws happens in calculated rating.
+        Same parameter described in pandas.Series.rank: https://pandas.pydata.org/pandas-docs/stable/generated/pandas.Series.rank.html
+    """
     def __init__(self, table, method='min'):
         return super().__init__(table, method)
     
-    def rank(self, restart=0.3, threshold=1e-4, ascending=True):
+    def rank(self, restart=0.3, threshold=1e-4, ascending=False):
+        """Calculate the rank and rating with specified parameters.
+
+        Parameters
+        ----------
+        restart: [0, 1], default 0.3.
+            Random walk with restart: in order to avoid black hole in random walk graph.
+        threshold: (0, +Inf), default 1e-4
+            The threshold that controls when the algorithm will converge.
+        ascending: bool. default False.
+            If set to True, the smaller the rating, the smaller the rank. For Markov rank it should be False.
+        
+        Returns
+        -------
+        pandas.DataFrame, with column ['name', 'rating', 'rank']
+        """
         if restart>1 or restart<0:
             raise ValueError("restart rate should be between 0 and 1.")
         mtx = pd.DataFrame(data={
@@ -168,10 +273,41 @@ class MarkovRanker(UnsupervisedRanker):
         return self._showcase(ascending)
 
 class ODRanker(UnsupervisedRanker):
+    """The Offence-defence rank tries to assign an offence rating and a defence rating to each team.
+    By saying "offence rating", we assume that a team has a high offence rating when it gained a lot of points 
+    from a team good in defence. Vise versa. The offence rating of a team is associated with defence rating of each
+    competitor in a non-linear way. The defence rating of a team is also non-linearly related to each competitors' 
+    offence rating.
+
+    Parameters
+    ----------
+    table: Table object containing pairs of teams' playing scores, with optional weights.
+    method: {'average', 'min', 'max', 'first', 'dense'}, default 'min'
+        The method to calculate rank when draws happens in calculated rating.
+        Same parameter described in pandas.Series.rank: https://pandas.pydata.org/pandas-docs/stable/generated/pandas.Series.rank.html
+    """
     def __init__(self, table, method='min'):
         return super().__init__(table, method)
     
-    def rank(self, output='summary', epsilon=1e-4, threshold=1e-4, ascending=True):
+    def rank(self, output='summary', epsilon=1e-4, threshold=1e-4, ascending=False):
+        """Calculate the rank and rating with specified parameters.
+
+        Parameters
+        ----------
+        output: {'summary', 'offence', 'defence'}, default 'summary'.
+            The rating to be returned. 'summary' is offence/defence.
+        epsilon: [0, +Inf) default 1e-4
+            The small value that forces a convergence.
+        threshold: (0, +Inf), default 1e-4
+            The threshold that controls when the algorithm will converge.
+        ascending: bool. default False.
+            If set to True, the smaller the rating, the smaller the rank. For rating 'summary' and 'offence' it should be set to False.
+            For rating 'defence', it should be set to True.
+        
+        Returns
+        -------
+        pandas.DataFrame, with column ['name', 'rating', 'rank']
+        """
         mtx = pd.DataFrame(data={
             'hidx': pd.concat([self.data.table.hidx, self.data.table.vidx]),
             'vidx': pd.concat([self.data.table.vidx, self.data.table.hidx]),
@@ -202,7 +338,7 @@ class ODRanker(UnsupervisedRanker):
         elif output=='defence':
             r = d
         else:
-            raise ValueError('ouput should be one of summary, offence or defence.')
+            raise ValueError('output should be one of summary, offence or defence.')
         if hasattr(self, "rating"):
             self.rating["rating"] = r
         else:
@@ -212,10 +348,31 @@ class ODRanker(UnsupervisedRanker):
         return self._showcase(ascending)
 
 class DifferenceRanker(UnsupervisedRanker):
+    """This ranker targets at predicting score difference of games directly.
+    The difference of ratings are proportional to the difference of score.
+
+    Parameters
+    ----------
+    table: Table object containing pairs of teams' playing scores, with optional weights.
+    method: {'average', 'min', 'max', 'first', 'dense'}, default 'min'
+        The method to calculate rank when draws happens in calculated rating.
+        Same parameter described in pandas.Series.rank: https://pandas.pydata.org/pandas-docs/stable/generated/pandas.Series.rank.html
+    """
     def __init__(self, table, method='min'):
         return super().__init__(table, method)
 
-    def rank(self, ascending=True):
+    def rank(self, ascending=False):
+        """Calculate the rank and rating with specified parameters.
+
+        Parameters
+        ----------
+        ascending: bool. default False.
+            If set to True, the smaller the rating, the smaller the rank. For difference rank it is set to False by default.
+        
+        Returns
+        -------
+        pandas.DataFrame, with column ['name', 'rating', 'rank']
+        """
         mtx = pd.DataFrame(data={
             'hidx': pd.concat([self.data.table.hidx, self.data.table.vidx]),
             'vidx': pd.concat([self.data.table.vidx, self.data.table.hidx]),
@@ -238,12 +395,40 @@ class DifferenceRanker(UnsupervisedRanker):
         return self._showcase(ascending)
 
 class EloRanker(UnsupervisedRanker):
+    """Elo rank is proposed by Arpad Elo to rank international chess players. It has been gone through many
+    adaptations for various competitions.
+
+    Parameters
+    ----------
+    table: Table object containing pairs of teams' playing scores, with compulsory time column and optional hostavantage.
+    method: {'average', 'min', 'max', 'first', 'dense'}, default 'min'
+        The method to calculate rank when draws happens in calculated rating.
+        Same parameter described in pandas.Series.rank: https://pandas.pydata.org/pandas-docs/stable/generated/pandas.Series.rank.html
+    """
     def __init__(self, table, method='min'):
         if not table.table.columns.contains('time'):
             raise ValueError('The passed in table has no time information provided.')
         return super().__init__(table, method)
 
-    def rank(self, K = 10, baseline = 0, xi=400, ascending=True):
+    def rank(self, K = 10, baseline = 0, xi=400, ascending=False):
+        """Calculate the rank and rating with specified parameters.
+
+        Parameters
+        ----------
+        K: (0, +Inf), default 10.
+            K-factor determines how quickly the rating reacts to new game results.
+        baseline: (-Inf, +Inf), default 0.
+            The average performance of the match is baseline. As time passes by, the teams' performance deviates from baseline.
+        xi: (0, +Inf), default 400.
+            If one player has xi more rating points than its competitor, it is expected that this player a chance of winning 10 times of 
+            the chance it will lose.
+        ascending: bool. default False.
+            If set to True, the smaller the rating, the smaller the rank. For Elo rank it is set to False by default.
+        
+        Returns
+        -------
+        pandas.DataFrame, with column ['name', 'rating', 'rank']
+        """
         self.xi = xi
         self.K = K
         self.baseline = baseline
@@ -270,8 +455,20 @@ class EloRanker(UnsupervisedRanker):
         return self._showcase(ascending)
 
     def prob_win(self, host, visit):
+        """Predict the probability of winning based on current elo rating.
+        The ranker should have ranked a table first before invoking this function.
+
+        Parameters
+        ----------
+        host: it can be a single object or a list of object indicating host(s).
+        visit: same as host, should have same length as host.
+
+        Returns
+        -------
+        probability of winning (scalar or list)
+        """
         if not hasattr(self, 'rating'):
-            return RuntimeError('No rating information calculated. Please involke rank first.')
+            return RuntimeError('No rating information calculated. Please invoke rank first.')
         
         r = self.rating.rating.values
         if isinstance(host, np.ndarray) and host.ndim==1:
@@ -291,6 +488,19 @@ class EloRanker(UnsupervisedRanker):
             return 1/(1+10**((r[v]-r[h])/self.xi))
     
     def update(self, newtable):
+        """Update elo ranking given new table object. The new table should have time column no smaller than existing table.
+        This method is equivalent to calling rank on a concatenated Table of original table and new table, without the need to
+        construct a new Table object and a new Ranker.
+        Calling this function will also update table object contained in the ranker.
+
+        Parameters
+        ----------
+        newtable: Table object, with time no smaller than existing table.
+
+        Returns
+        ------
+        pandas.DataFrame, with column ['name', 'rating', 'rank']
+        """
         xi, K, baseline, ascending = self.xi, self.K, self.baseline, self.ascending
         self.data.update(newtable)
         rating = baseline*np.ones(self.data.itemnum)

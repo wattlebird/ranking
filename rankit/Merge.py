@@ -5,6 +5,16 @@ from .Table import Table
 
 
 def borda_count_merge(rankings):
+    """Merge rankings by using Borda count.
+
+    Parameters
+    ----------
+    rankings: list of rankings returned by rank of rankers.
+
+    Returns
+    -------
+    pandas.DataFrame: ['name', 'BordaCount', 'rank']
+    """
     if not isinstance(rankings, list):
         raise ValueError('rankings should be a list of ranker result.')
     if not all([isinstance(x, pd.DataFrame) for x in rankings]):
@@ -16,6 +26,16 @@ def borda_count_merge(rankings):
     return t.sort_values(by='BordaCount', ascending=False).reset_index()
 
 def average_ranking_merge(rankings):
+    """Merge rankings by using average of rankings.
+
+    Parameters
+    ----------
+    rankings: list of rankings returned by rank of rankers.
+
+    Returns
+    -------
+    pandas.DataFrame: ['name', 'AverageRank', 'rank']
+    """
     if not isinstance(rankings, list):
         raise ValueError('rankings should be a list of ranker result.')
     if not all([isinstance(x, pd.DataFrame) for x in rankings]):
@@ -27,6 +47,21 @@ def average_ranking_merge(rankings):
     return t.sort_values(by='AverageRank').reset_index()
 
 def simulation_aggreation_merge(rankings, baseline, method='od'):
+    """Merge rankings by running simulation of existing rankings. This would first extract relative position of different ranking results,
+    and relative position are considered as simulated games. The game results are sent to another ranker that gives merged ranking result.
+
+    Parameters
+    ----------
+    rankings: list of rankings returned by rank of rankers.
+    baseline: (0, +Inf)
+        Since we are using relative position of each game player, one should provide a baseline as the least score a team should obtain in the simulated match.
+    method: {'massey', 'colley', 'keener', 'markov', 'od', 'difference'}
+        The final ranker applied on simulated games.
+
+    Returns
+    -------
+    pandas.DataFrame: ['name', 'rating', 'rank']
+    """
     if not isinstance(rankings, list):
         raise ValueError('rankings should be a list of ranker result.')
     if not all([isinstance(x, pd.DataFrame) for x in rankings]):

@@ -7,7 +7,21 @@ class Table(object):
     """ A Table object in rankit is equivalent to data. 
     It provides an interface to all ranking solutions in rankit.
 
-    Table accepts <item1, item2, score1, score2> formatted input in pandas.dataframe/tsv/csv...
+    Table accepts <item1, item2, score1, score2> formatted input in pandas.dataframe.
+
+    Parameters
+    ----------
+    data: pandas.DataFrame
+        Game result of paired players.
+    col: list of index or column names
+        Index or column names should indicating ['player1', 'player2', 'score1', 'score2']
+    weightcol: index or name of column indicating weight
+    timecol: index or name of column indicating time. Compulsory column for Elo Rank.
+    hostavantagecol: index or name of column indicating host advantage
+
+    Returns
+    -------
+    Table object to be fed to Rankers.
     """
 
     def __init__(self, data, col, weightcol=None, timecol=None, hostavantagecol=None):
