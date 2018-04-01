@@ -1,7 +1,7 @@
 
 # Rankit
 
-[![Build Status](https://travis-ci.org/wattlebird/ranking.svg?branch=master)](https://travis-ci.org/wattlebird/ranking)
+[![Build Status](https://travis-ci.org/wattlebird/ranking.svg?branch=master)](https://travis-ci.org/wattlebird/ranking) [![PyPI version](https://badge.fury.io/py/rankit.svg)](https://badge.fury.io/py/rankit)
 
 ## What is rankit?
 
@@ -29,10 +29,6 @@ data = pd.DataFrame({
     "rate1": [7, 21, 7, 0, 34, 25, 27, 7, 3, 14],
     "rate2": [52, 24, 38, 45, 16, 17, 7, 5, 30, 52]
 }, columns=["primary", "secondary", "rate1", "rate2"])
-```
-
-
-```python
 data
 ```
 
@@ -40,19 +36,6 @@ data
 
 
 <div>
-<style scoped>
-    .dataframe tbody tr th:only-of-type {
-        vertical-align: middle;
-    }
-
-    .dataframe tbody tr th {
-        vertical-align: top;
-    }
-
-    .dataframe thead th {
-        text-align: right;
-    }
-</style>
 <table border="1" class="dataframe">
   <thead>
     <tr style="text-align: right;">
@@ -154,19 +137,6 @@ ranker.rank()
 
 
 <div>
-<style scoped>
-    .dataframe tbody tr th:only-of-type {
-        vertical-align: middle;
-    }
-
-    .dataframe tbody tr th {
-        vertical-align: top;
-    }
-
-    .dataframe thead th {
-        text-align: right;
-    }
-</style>
 <table border="1" class="dataframe">
   <thead>
     <tr style="text-align: right;">
@@ -224,30 +194,12 @@ from rankit.Merge import borda_count_merge
 
 mergedrank = borda_count_merge([
     MasseyRanker(data).rank(), KeenerRanker(data).rank(), MarkovRanker(data).rank()])
-```
-
-
-```python
 mergedrank
 ```
 
 
 
-
 <div>
-<style scoped>
-    .dataframe tbody tr th:only-of-type {
-        vertical-align: middle;
-    }
-
-    .dataframe tbody tr th {
-        vertical-align: top;
-    }
-
-    .dataframe thead th {
-        text-align: right;
-    }
-</style>
 <table border="1" class="dataframe">
   <thead>
     <tr style="text-align: right;">
