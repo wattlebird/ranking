@@ -1,6 +1,5 @@
 from __future__ import division
 from __future__ import absolute_import
-from builtins import (bytes, str, open, super, range, zip, round, input, int, pow, object)
 import numpy as np
 import pandas as pd
 import scipy as sp
@@ -46,7 +45,7 @@ class MasseyRanker(UnsupervisedRanker):
         Same parameter described in pandas.Series.rank: https://pandas.pydata.org/pandas-docs/stable/generated/pandas.Series.rank.html
     """
     def __init__(self, table, method='min'):
-        return super().__init__(table, method)
+        return super(MasseyRanker, self).__init__(table, method)
         
 
     def rank(self, tiethreshold = 0.0, ascending=False):
@@ -110,7 +109,7 @@ class ColleyRanker(UnsupervisedRanker):
         Same parameter described in pandas.Series.rank: https://pandas.pydata.org/pandas-docs/stable/generated/pandas.Series.rank.html
     """
     def __init__(self, table, method='min'):
-        return super().__init__(table, method)
+        return super(ColleyRanker, self).__init__(table, method)
 
     def rank(self, tiethreshold = 0.0, ascending=False):
         """Calculate the rank and rating with specified parameters.
@@ -157,7 +156,7 @@ class KeenerRanker(UnsupervisedRanker):
         Same parameter described in pandas.Series.rank: https://pandas.pydata.org/pandas-docs/stable/generated/pandas.Series.rank.html
     """
     def __init__(self, table, method='min'):
-        return super().__init__(table, method)
+        return super(KeenerRanker, self).__init__(table, method)
     
     def rank(self, func=None, epsilon=1e-4, threshold=1e-4, ascending=False):
         """Calculate the rank and rating with specified parameters.
@@ -227,7 +226,7 @@ class MarkovRanker(UnsupervisedRanker):
         Same parameter described in pandas.Series.rank: https://pandas.pydata.org/pandas-docs/stable/generated/pandas.Series.rank.html
     """
     def __init__(self, table, method='min'):
-        return super().__init__(table, method)
+        return super(MarkovRanker, self).__init__(table, method)
     
     def rank(self, restart=0.3, threshold=1e-4, ascending=False):
         """Calculate the rank and rating with specified parameters.
@@ -293,7 +292,7 @@ class ODRanker(UnsupervisedRanker):
         Same parameter described in pandas.Series.rank: https://pandas.pydata.org/pandas-docs/stable/generated/pandas.Series.rank.html
     """
     def __init__(self, table, method='min'):
-        return super().__init__(table, method)
+        return super(ODRanker, self).__init__(table, method)
     
     def rank(self, output='summary', epsilon=1e-4, threshold=1e-4, ascending=False):
         """Calculate the rank and rating with specified parameters.
@@ -366,7 +365,7 @@ class DifferenceRanker(UnsupervisedRanker):
         Same parameter described in pandas.Series.rank: https://pandas.pydata.org/pandas-docs/stable/generated/pandas.Series.rank.html
     """
     def __init__(self, table, method='min'):
-        return super().__init__(table, method)
+        return super(DifferenceRanker, self).__init__(table, method)
 
     def rank(self, ascending=False):
         """Calculate the rank and rating with specified parameters.
@@ -416,7 +415,7 @@ class EloRanker(UnsupervisedRanker):
     def __init__(self, table, method='min'):
         if not table.table.columns.contains('time'):
             raise ValueError('The passed in table has no time information provided.')
-        return super().__init__(table, method)
+        return super(EloRanker, self).__init__(table, method)
 
     def rank(self, K = 10, baseline = 0, xi=400, ascending=False):
         """Calculate the rank and rating with specified parameters.
