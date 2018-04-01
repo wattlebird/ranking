@@ -97,3 +97,39 @@ def eld_rank_update_test():
 
     assert_almost_equal(r1.rating.values, r2.rating.values)
     assert_raises(AssertionError, assert_array_equal, r0.rating.values, r2.rating.values)
+
+def massey_rank_score_difference_test():
+    table = Table(sample_paired, col=[0,1,2,3])
+    ranker = MasseyRanker(table)
+    rank = ranker.rank()
+    rank = rank.set_index('name')
+    score_diff = ranker.score_diff(sample_paired.primary.values, sample_paired.secondary.values)
+    t = sample_paired.merge(rank, left_on='primary', right_index=True).\
+        merge(rank, left_on='secondary', right_index=True).\
+        sort_index()
+    score_diff_2 = t.rating_x - t.rating_y
+    assert_almost_equal(score_diff, score_diff_2)
+
+def keener_rank_score_difference_test():
+    table = Table(sample_paired, col=[0,1,2,3])
+    ranker = KeenerRanker(table)
+    rank = ranker.rank()
+    rank = rank.set_index('name')
+    score_diff = ranker.score_diff(sample_paired.primary.values, sample_paired.secondary.values)
+    t = sample_paired.merge(rank, left_on='primary', right_index=True).\
+        merge(rank, left_on='secondary', right_index=True).\
+        sort_index()
+    score_diff_2 = t.rating_x - t.rating_y
+    assert_almost_equal(score_diff, score_diff_2)
+
+def difference_rank_score_difference_test():
+    table = Table(sample_paired, col=[0,1,2,3])
+    ranker = DifferenceRanker(table)
+    rank = ranker.rank()
+    rank = rank.set_index('name')
+    score_diff = ranker.score_diff(sample_paired.primary.values, sample_paired.secondary.values)
+    t = sample_paired.merge(rank, left_on='primary', right_index=True).\
+        merge(rank, left_on='secondary', right_index=True).\
+        sort_index()
+    score_diff_2 = t.rating_x - t.rating_y
+    assert_almost_equal(score_diff, score_diff_2)

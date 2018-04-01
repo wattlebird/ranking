@@ -92,6 +92,40 @@ class MasseyRanker(UnsupervisedRanker):
 
         return self._showcase(ascending)
 
+    def score_diff(self, host, visit):
+        """Calculate the score difference given host player and visit player.
+
+        Parameters
+        ----------
+        host:
+            It can be a single object or a list of object indicating host(s).
+        visit: 
+            Same as host, should have same length as host.
+
+        Returns
+        -------
+        float or list of float
+        """
+        
+        if not hasattr(self, 'rating'):
+            return RuntimeError('No rating information calculated. Please invoke rank first.')
+        
+        r = self.rating.rating.values
+        if isinstance(host, np.ndarray) and host.ndim==1:
+            host = host.tolist()
+        if isinstance(visit, np.ndarray) and visit.ndim==1:
+            visit = visit.tolist()
+        if isinstance(host, list) and isinstance(visit, list):
+            rst = []
+            for rawh, rawv in zip(host, visit):
+                h = self.data.itemlut[rawh]
+                v = self.data.itemlut[rawv]
+                rst.append(r[h]-r[v])
+            return rst
+        else:
+            h = self.data.itemlut[host]
+            v = self.data.itemlut[visit]
+            return (r[h]-r[v])
 
 class ColleyRanker(UnsupervisedRanker):
     """Colley ranking system proposed by Wesley Colley: 
@@ -211,6 +245,41 @@ class KeenerRanker(UnsupervisedRanker):
                 "iidx": np.arange(self.data.itemnum, dtype=np.int),
                 "rating": r})
         return self._showcase(ascending)
+
+    def score_diff(self, host, visit):
+        """Calculate the score difference given host player and visit player.
+
+        Parameters
+        ----------
+        host:
+            It can be a single object or a list of object indicating host(s).
+        visit: 
+            Same as host, should have same length as host.
+
+        Returns
+        -------
+        float or list of float
+        """
+        
+        if not hasattr(self, 'rating'):
+            return RuntimeError('No rating information calculated. Please invoke rank first.')
+        
+        r = self.rating.rating.values
+        if isinstance(host, np.ndarray) and host.ndim==1:
+            host = host.tolist()
+        if isinstance(visit, np.ndarray) and visit.ndim==1:
+            visit = visit.tolist()
+        if isinstance(host, list) and isinstance(visit, list):
+            rst = []
+            for rawh, rawv in zip(host, visit):
+                h = self.data.itemlut[rawh]
+                v = self.data.itemlut[rawv]
+                rst.append(r[h]-r[v])
+            return rst
+        else:
+            h = self.data.itemlut[host]
+            v = self.data.itemlut[visit]
+            return (r[h]-r[v])
 
 class MarkovRanker(UnsupervisedRanker):
     """Markov ranking is actually PageRank.
@@ -399,6 +468,41 @@ class DifferenceRanker(UnsupervisedRanker):
                 "iidx": np.arange(self.data.itemnum, dtype=np.int),
                 "rating": r})
         return self._showcase(ascending)
+    
+    def score_diff(self, host, visit):
+        """Calculate the score difference given host player and visit player.
+
+        Parameters
+        ----------
+        host:
+            It can be a single object or a list of object indicating host(s).
+        visit: 
+            Same as host, should have same length as host.
+
+        Returns
+        -------
+        float or list of float
+        """
+        
+        if not hasattr(self, 'rating'):
+            return RuntimeError('No rating information calculated. Please invoke rank first.')
+        
+        r = self.rating.rating.values
+        if isinstance(host, np.ndarray) and host.ndim==1:
+            host = host.tolist()
+        if isinstance(visit, np.ndarray) and visit.ndim==1:
+            visit = visit.tolist()
+        if isinstance(host, list) and isinstance(visit, list):
+            rst = []
+            for rawh, rawv in zip(host, visit):
+                h = self.data.itemlut[rawh]
+                v = self.data.itemlut[rawv]
+                rst.append(r[h]-r[v])
+            return rst
+        else:
+            h = self.data.itemlut[host]
+            v = self.data.itemlut[visit]
+            return (r[h]-r[v])
 
 class EloRanker(UnsupervisedRanker):
     """Elo rank is proposed by Arpad Elo to rank international chess players. It has been gone through many
