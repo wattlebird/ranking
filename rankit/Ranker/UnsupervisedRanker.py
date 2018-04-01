@@ -1,5 +1,6 @@
 from __future__ import division
 from __future__ import absolute_import
+from builtins import (bytes, str, open, super, range, zip, round, input, int, pow, object)
 import numpy as np
 import pandas as pd
 import scipy as sp
@@ -38,7 +39,8 @@ class MasseyRanker(UnsupervisedRanker):
 
     Parameters
     ----------
-    table: Table object containing pairs of teams' playing scores, with optional weights.
+    table:
+        Table object containing pairs of teams' playing scores, with optional weights.
     method: {'average', 'min', 'max', 'first', 'dense'}, default 'min'
         The method to calculate rank when draws happens in calculated rating.
         Same parameter described in pandas.Series.rank: https://pandas.pydata.org/pandas-docs/stable/generated/pandas.Series.rank.html
@@ -101,7 +103,8 @@ class ColleyRanker(UnsupervisedRanker):
 
     Parameters
     ----------
-    table: Table object containing pairs of teams' playing scores, with optional weights.
+    table:
+        Table object containing pairs of teams' playing scores, with optional weights.
     method: {'average', 'min', 'max', 'first', 'dense'}, default 'min'
         The method to calculate rank when draws happens in calculated rating.
         Same parameter described in pandas.Series.rank: https://pandas.pydata.org/pandas-docs/stable/generated/pandas.Series.rank.html
@@ -147,7 +150,8 @@ class KeenerRanker(UnsupervisedRanker):
 
     Parameters
     ----------
-    table: Table object containing pairs of teams' playing scores, with optional weights.
+    table:
+        Table object containing pairs of teams' playing scores, with optional weights.
     method: {'average', 'min', 'max', 'first', 'dense'}, default 'min'
         The method to calculate rank when draws happens in calculated rating.
         Same parameter described in pandas.Series.rank: https://pandas.pydata.org/pandas-docs/stable/generated/pandas.Series.rank.html
@@ -216,7 +220,8 @@ class MarkovRanker(UnsupervisedRanker):
 
     Parameters
     ----------
-    table: Table object containing pairs of teams' playing scores, with optional weights.
+    table:
+        Table object containing pairs of teams' playing scores, with optional weights.
     method: {'average', 'min', 'max', 'first', 'dense'}, default 'min'
         The method to calculate rank when draws happens in calculated rating.
         Same parameter described in pandas.Series.rank: https://pandas.pydata.org/pandas-docs/stable/generated/pandas.Series.rank.html
@@ -281,7 +286,8 @@ class ODRanker(UnsupervisedRanker):
 
     Parameters
     ----------
-    table: Table object containing pairs of teams' playing scores, with optional weights.
+    table:
+        Table object containing pairs of teams' playing scores, with optional weights.
     method: {'average', 'min', 'max', 'first', 'dense'}, default 'min'
         The method to calculate rank when draws happens in calculated rating.
         Same parameter described in pandas.Series.rank: https://pandas.pydata.org/pandas-docs/stable/generated/pandas.Series.rank.html
@@ -353,7 +359,8 @@ class DifferenceRanker(UnsupervisedRanker):
 
     Parameters
     ----------
-    table: Table object containing pairs of teams' playing scores, with optional weights.
+    table:
+        Table object containing pairs of teams' playing scores, with optional weights.
     method: {'average', 'min', 'max', 'first', 'dense'}, default 'min'
         The method to calculate rank when draws happens in calculated rating.
         Same parameter described in pandas.Series.rank: https://pandas.pydata.org/pandas-docs/stable/generated/pandas.Series.rank.html
@@ -400,7 +407,8 @@ class EloRanker(UnsupervisedRanker):
 
     Parameters
     ----------
-    table: Table object containing pairs of teams' playing scores, with compulsory time column and optional hostavantage.
+    table:
+        Table object containing pairs of teams' playing scores, with compulsory time column and optional hostavantage.
     method: {'average', 'min', 'max', 'first', 'dense'}, default 'min'
         The method to calculate rank when draws happens in calculated rating.
         Same parameter described in pandas.Series.rank: https://pandas.pydata.org/pandas-docs/stable/generated/pandas.Series.rank.html
@@ -460,8 +468,10 @@ class EloRanker(UnsupervisedRanker):
 
         Parameters
         ----------
-        host: it can be a single object or a list of object indicating host(s).
-        visit: same as host, should have same length as host.
+        host:
+            It can be a single object or a list of object indicating host(s).
+        visit: 
+            Same as host, should have same length as host.
 
         Returns
         -------
@@ -495,7 +505,8 @@ class EloRanker(UnsupervisedRanker):
 
         Parameters
         ----------
-        newtable: Table object, with time no smaller than existing table.
+        newtable:
+            Table object, with time no smaller than existing table.
 
         Returns
         ------
