@@ -1,7 +1,7 @@
+
 # Rankit
 
-Game Start!
-
+[![Build Status](https://travis-ci.org/wattlebird/ranking.svg?branch=master)](https://travis-ci.org/wattlebird/ranking) [![PyPI version](https://badge.fury.io/py/rankit.svg)](https://badge.fury.io/py/rankit)
 
 ## What is rankit?
 
@@ -9,7 +9,7 @@ Rankit is created for the purpose of a more "scientific" ranking of rankable obj
 
 We rank objects by giving objects a score, we call that score rating. Traditionally, people would generate ratings by calculating average score, median or some other statistical meaningful numbers. However, eventhough this method is widely accepted, it can have bias in some extreme cases. Average score would easily be manipulated if the number of scores are unrestricted. One cope to this cheat is weighting, but this can only leverage the problem but not solving it.
 
-Here in rankit, we solve the problem by borrowing wisdoms from linear algebra. Every rankable objects are ranked based on their performance when they compare with each other. We compare each pair of rankable objects, and we generate a matrix. Then we get the ranking from that matrix, using different ranking methods. Most of the ranking methods are based on a same idea: ranking is a state that should be extracted from observations which are encoded in matrix.
+Here in Rankit, we provide a variety of ranking solutions other than simple average. These methods includes famous sports ranking solutions like Massey ranking system, Colley ranking system, Keener ranking system, Elo ranking system... Some of the methods borrow the wisdom from PageRank and HITS, and a ranking system aims to predict score difference also exists.
 
 To further compete with ranking cheating, rankit also included ranking merging methods and provided measures to measure distance between different ranking results.
 
@@ -17,13 +17,19 @@ All the algorithms implemented in rankit have been described in [Who's \#1? The 
 
 ## Quick start
 
-Suppose we want to generate the rank of five teams from NCAA American football competition by using their scores in season 2005 (this is also the example used more than once in the book I mentioned above:)
+Suppose we want to generate the Massey rank of five teams from NCAA American football competition by using their scores in season 2005 (this is also the example used more than once in the book I mentioned above:)
 
 
 ```python
-from rankit.util import Converter
-cvt = Converter(filename="Data/test_small.bin")
-cvt.table
+import pandas as pd
+
+data = pd.DataFrame({
+    "primary": ["Duke", "Duke", "Duke", "Duke", "Miami", "Miami", "Miami", "UNC", "UNC", "UVA"], 
+    "secondary": ["Miami", "UNC", "UVA", "VT", "UNC", "UVA", "VT", "UVA", "VT", "VT"],
+    "rate1": [7, 21, 7, 0, 34, 25, 27, 7, 3, 14],
+    "rate2": [52, 24, 38, 45, 16, 17, 7, 5, 30, 52]
+}, columns=["primary", "secondary", "rate1", "rate2"])
+data
 ```
 
 
@@ -38,7 +44,6 @@ cvt.table
       <th>secondary</th>
       <th>rate1</th>
       <th>rate2</th>
-      <th>weight</th>
     </tr>
   </thead>
   <tbody>
@@ -48,7 +53,6 @@ cvt.table
       <td>Miami</td>
       <td>7</td>
       <td>52</td>
-      <td>1</td>
     </tr>
     <tr>
       <th>1</th>
@@ -56,7 +60,6 @@ cvt.table
       <td>UNC</td>
       <td>21</td>
       <td>24</td>
-      <td>1</td>
     </tr>
     <tr>
       <th>2</th>
@@ -64,7 +67,6 @@ cvt.table
       <td>UVA</td>
       <td>7</td>
       <td>38</td>
-      <td>1</td>
     </tr>
     <tr>
       <th>3</th>
@@ -72,7 +74,6 @@ cvt.table
       <td>VT</td>
       <td>0</td>
       <td>45</td>
-      <td>1</td>
     </tr>
     <tr>
       <th>4</th>
@@ -80,7 +81,6 @@ cvt.table
       <td>UNC</td>
       <td>34</td>
       <td>16</td>
-      <td>1</td>
     </tr>
     <tr>
       <th>5</th>
@@ -88,7 +88,6 @@ cvt.table
       <td>UVA</td>
       <td>25</td>
       <td>17</td>
-      <td>1</td>
     </tr>
     <tr>
       <th>6</th>
@@ -96,7 +95,6 @@ cvt.table
       <td>VT</td>
       <td>27</td>
       <td>7</td>
-      <td>1</td>
     </tr>
     <tr>
       <th>7</th>
@@ -104,7 +102,6 @@ cvt.table
       <td>UVA</td>
       <td>7</td>
       <td>5</td>
-      <td>1</td>
     </tr>
     <tr>
       <th>8</th>
@@ -112,7 +109,6 @@ cvt.table
       <td>VT</td>
       <td>3</td>
       <td>30</td>
-      <td>1</td>
     </tr>
     <tr>
       <th>9</th>
@@ -120,7 +116,6 @@ cvt.table
       <td>VT</td>
       <td>14</td>
       <td>52</td>
-      <td>1</td>
     </tr>
   </tbody>
 </table>
@@ -128,43 +123,14 @@ cvt.table
 
 
 
-In the code above, I preloaded the contest data that has been stored in "Data/test_small.bin". The Pandas DataFrame has recorded all the contest details. The primary and secondary columns are the name for each rankable objects, and the rate1, rate2 columns are their corresponding scores in this match. The last column, weight, is to indicate the significance of this match, which could be counted in the following algorithms.
-
-Now, have the necessary contest data, it is time to calculate the ranking of these five football teams. To make it easier for programmers who does not know too much about the ranking techiques mentioned in that book, we start from a most obvious case. You may have heard of [PageRank](https://en.wikipedia.org/wiki/PageRank), that famous algorithm that proposed by the founders of Google in the end of last centary. The main idea of PR is to identify in-links and out-links between different webpages on the Internet, and under [certain conditions](https://en.wikipedia.org/wiki/Markov_chain), we can obtain the final state vector which indicates the long-term probability that we visit every pages.
-
-The good news is that this idea could also be used in the rating of different teams. Here we do not have the concept of in or out links, but teams would vote to other teams by their performance. For example, in the first contest record, Miami beated Duke by 52:7. This result could be interpreted in this way: Duke voted 45 scores to Miami. By checking every contest, we could get the following voting matrix:
-
 
 ```python
-D = cvt.RateDifferenceVoteMatrix()
-D
-```
+from rankit.Table import Table
+from rankit.Ranker import MasseyRanker
 
-
-
-
-    array([[  0.,  45.,   3.,  31.,  45.],
-           [  0.,   0.,   0.,   0.,   0.],
-           [  0.,  18.,   0.,   0.,  27.],
-           [  0.,   8.,   2.,   0.,  38.],
-           [  0.,  20.,   0.,   0.,   0.]], dtype=float32)
-
-
-
-Here we have encoded the teams' voting information in a matrix D. Now we could calculate the ranking! But before we start, I have to let you know that in order for the result to coverage, it is necessary to do some modifications to make the matrix satisify coverage conditions. If you know PageRank, it does not use the probability matrix directly, instead they used
-
-$$
-\mathbf{A} = \epsilon \mathbf{A} + (1-\epsilon) \mathbf{e} \mathbf{e}^T
-$$
-
-to enforce the reducibility. In the ranker, we can also use the same technique:
-
-
-```python
-from rankit.ranker import MarkovRank
-ranker = MarkovRank(itemlist=cvt.ItemList(), epsilon=0.8)
-r = ranker.rate(D)
-ranker.rank(r)
+data = Table(data, ['primary', 'secondary', 'rate1', 'rate2'])
+ranker = MasseyRanker(data)
+ranker.rank()
 ```
 
 
@@ -175,8 +141,8 @@ ranker.rank(r)
   <thead>
     <tr style="text-align: right;">
       <th></th>
-      <th>title</th>
-      <th>rate</th>
+      <th>name</th>
+      <th>rating</th>
       <th>rank</th>
     </tr>
   </thead>
@@ -184,31 +150,31 @@ ranker.rank(r)
     <tr>
       <th>0</th>
       <td>Miami</td>
-      <td>0.509513</td>
+      <td>18.2</td>
       <td>1</td>
     </tr>
     <tr>
       <th>1</th>
       <td>VT</td>
-      <td>0.25781</td>
+      <td>18.0</td>
       <td>2</td>
     </tr>
     <tr>
       <th>2</th>
       <td>UVA</td>
-      <td>0.0903284</td>
+      <td>-3.4</td>
       <td>3</td>
     </tr>
     <tr>
       <th>3</th>
       <td>UNC</td>
-      <td>0.0748185</td>
+      <td>-8.0</td>
       <td>4</td>
     </tr>
     <tr>
       <th>4</th>
       <td>Duke</td>
-      <td>0.0675298</td>
+      <td>-24.8</td>
       <td>5</td>
     </tr>
   </tbody>
@@ -217,13 +183,19 @@ ranker.rank(r)
 
 
 
-In the code above, we pass the ranker MarkovRank with `itemlist=cvt.ItemList()` to tell ranker the rankable objects' names. It should be a pandas DataFrame with column "itemid" and "index". "index" must starts from 0.
+That's it! All the things you have to do is preparing the games data in the form of pandas DataFrame, specifying the players' columns and score columns, pick a ranker and rank!
+
+There are a variety of ranking methods for you to choose, but what if one wants to merge several ranking results?
 
 
 ```python
-cvt.ItemList()
-```
+from rankit.Ranker import MasseyRanker, ColleyRanker, KeenerRanker, MarkovRanker
+from rankit.Merge import borda_count_merge
 
+mergedrank = borda_count_merge([
+    MasseyRanker(data).rank(), KeenerRanker(data).rank(), MarkovRanker(data).rank()])
+mergedrank
+```
 
 
 
@@ -232,100 +204,8 @@ cvt.ItemList()
   <thead>
     <tr style="text-align: right;">
       <th></th>
-      <th>itemid</th>
-      <th>index</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <th>0</th>
-      <td>Duke</td>
-      <td>0</td>
-    </tr>
-    <tr>
-      <th>1</th>
-      <td>Miami</td>
-      <td>1</td>
-    </tr>
-    <tr>
-      <th>2</th>
-      <td>UNC</td>
-      <td>2</td>
-    </tr>
-    <tr>
-      <th>3</th>
-      <td>UVA</td>
-      <td>3</td>
-    </tr>
-    <tr>
-      <th>4</th>
-      <td>VT</td>
-      <td>4</td>
-    </tr>
-  </tbody>
-</table>
-</div>
-
-
-
-Now we have calculated the ranking of five teams in one method! But things shouldn't have stopped here. We have provided a lot more methods for you to try. If you do not want to know the details of these algorithms, you can arrange all your contest information in a pandas DataFrame as shown in the first table and let our Converter to generate suitable matrix for you. If you know how to arrange matrix, it would be unnecessary to rely on Converter to get itemlists and matrix. You could roll your own matrix!
-
-Now, what if I have calculated two or more rankings and I want to merge them into one ranking? There are many ways to do merging, and we take Borda Count as an example:
-
-
-```python
-from rankit.manager import RankMerger
-from rankit.util import Converter
-from rankit.ranker import ColleyRank, MasseyRank, ODRank, MarkovRank, KeenerRank
-cvt = Converter("Data/test_small.bin")
-
-C=cvt.ColleyMatrix()
-b=cvt.ColleyVector()
-ranker=ColleyRank(itemlist=cvt.ItemList())
-x=ranker.rate(C,b)
-r1=ranker.rank(x)
-
-M=cvt.MasseyMatrix()
-b=cvt.MasseyVector()
-ranker=MasseyRank(itemlist=cvt.ItemList())
-x=ranker.rate(M,b)
-r2=ranker.rank(x)
-
-M=cvt.RateVoteMatrix()
-ranker=ODRank(itemlist=cvt.ItemList())
-x=ranker.rate(M)
-r3=ranker.rank(x)
-
-ranker=MarkovRank(itemlist=cvt.ItemList(), epsilon=0.8)
-x = ranker.rate(M)
-r4 = ranker.rank(x)
-
-ranker=KeenerRank(itemlist=cvt.ItemList())
-C = cvt.CountMatrix()
-x = ranker.rate(M.T, C)
-r5 = ranker.rank(x)
-
-ranktable = dict()
-ranktable['colley']=r1
-ranktable['massey']=r2
-ranktable['od']=r3
-ranktable['markov']=r4
-ranktable['keener']=r5
-
-mgr = RankMerger(availableranks=ranktable)
-mgr.BordaCountMerge()
-```
-
-
-
-
-<div>
-<table border="1" class="dataframe">
-  <thead>
-    <tr style="text-align: right;">
-      <th></th>
-      <th>title</th>
-      <th>rate</th>
+      <th>name</th>
+      <th>BordaCount</th>
       <th>rank</th>
     </tr>
   </thead>
@@ -333,25 +213,25 @@ mgr.BordaCountMerge()
     <tr>
       <th>0</th>
       <td>Miami</td>
-      <td>19</td>
+      <td>12</td>
       <td>1</td>
     </tr>
     <tr>
       <th>1</th>
       <td>VT</td>
-      <td>16</td>
-      <td>2</td>
-    </tr>
-    <tr>
-      <th>2</th>
-      <td>UVA</td>
       <td>9</td>
+      <td>2</td>
+    </tr>
+    <tr>
+      <th>2</th>
+      <td>UVA</td>
+      <td>6</td>
       <td>3</td>
     </tr>
     <tr>
       <th>3</th>
       <td>UNC</td>
-      <td>6</td>
+      <td>3</td>
       <td>4</td>
     </tr>
     <tr>
@@ -365,35 +245,8 @@ mgr.BordaCountMerge()
 </div>
 
 
-
-Merger is created to make final rank more reliable and more difficult for cheaters to manipulate the ranking. In rankit, we also provided a set of interesting merging algorithms.
 
 So that's rankit! I hope that with rankit, there will be less dispute on the cheating of ranking and common people who does not know about the science of ranking will benefit from it.
-
-## Reference
-
-Adaptable matrix and ranking algorithms:
-
-| Algorithms in rankit.ranker | Corresponding Matrix provided by rankit.util.Converter |
-|---|---|
-| ColleyRank | ColleyMatrix and ColleyVector |
-| MasseyRank | MasseyMatrix and MasseyVector |
-| DifferenceRank | SymmetricDifferenceMatrix |
-| MarkovRank | RateDifferenceVoteMatrix or SimpleDifferenceVoteMatrix or RateVoteMatrix |
-| ODRank | RateDifferenceVoteMatrix or SimpleDifferenceVoteMatrix or RateVoteMatrix |
-| KeenerRank | Transpotation of RateVoteMatrix and CountMatrix |
-| LeastViolatedRank\* | Transpotation of RateDifferenceVoteMatrix -> ConsistancyMatrix |
-
-Rank merging algorithms:
-
-| Merging methods in rankit.manager.Merger | Notes |
-|---|---|
-| BordaCountMerge | Merge by Borda count |
-| AverageRankMerge | Merge by Averaging the rank |
-| RankListVoteMerge | Merge by graph algorithms |
-| LeastViolatedMerge\* | Merge by optimize the violation loss |
-
-\* Not suitable for large ranking (# ranked objects>100). Requires [Google or-tools](https://developers.google.com/optimization/) with python interface installed. And we did not provide interface to CPlex.
 
 ## License
 
