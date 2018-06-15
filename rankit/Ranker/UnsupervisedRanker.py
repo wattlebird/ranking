@@ -324,8 +324,11 @@ class MarkovRanker(UnsupervisedRanker):
         }, columns = ['hidx', 'vidx', 'hscore', 'vscore', 'weight']).reset_index(drop=True)
         mtx['hscore'] = mtx['hscore']*mtx['weight']
         mtx['vscore'] = mtx['vscore']*mtx['weight']
+
+        mtx_ = mtx.groupby('hidx').vscore.sum().rename('htotalvote')
+        
         mtx = mtx.groupby(['hidx', 'vidx'])[['hscore', 'vscore']].mean()
-        mtx = pd.concat([mtx.reset_index().set_index('hidx'), mtx.groupby('hidx').vscore.sum().rename('htotalvote')], axis=1).reset_index()
+        mtx = pd.concat([mtx.reset_index().set_index('hidx'), mtx_], axis=1).reset_index()
         mtx['prob'] = mtx['vscore']/mtx['htotalvote']
 
         D = coo_matrix((mtx.prob.values, (mtx.hidx.values, mtx.vidx.values)), shape=(self.data.itemnum, self.data.itemnum)).transpose().tocsr()
