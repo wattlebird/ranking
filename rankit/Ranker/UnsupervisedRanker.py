@@ -404,8 +404,8 @@ class ODRanker(UnsupervisedRanker):
         d = np.ones(self.data.itemnum)
         while norm(prevd-d)>threshold:
             prevd = d
-            o = Dt.dot(1/d)+epsilon/d
-            d = D.dot(1/o)+epsilon/o
+            o = Dt.dot(1/d)+np.ones(d.shape[0])*epsilon*(np.sum(1/d))
+            d = D.dot(1/o)+np.ones(o.shape[0])*epsilon*(np.sum(1/o))
         o = Dt.dot(1/d)
 
         if output=='summary':

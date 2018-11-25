@@ -32,20 +32,20 @@ class Table(object):
         if not isinstance(data, pd.DataFrame):
             raise ValueError("data should be pandas dataframe.")
 
-        raw_table = data.iloc[:, col].copy() if all(isinstance(i, int) for i in col) else data[col].copy()
+        raw_table = data.iloc[:, col] if all(isinstance(i, int) for i in col) else data[col]
         raw_table.columns = ["host", "visit", "hscore", "vscore"]
         raw_table.loc[:, ["hscore", "vscore"]] = raw_table.loc[:, ["hscore", "vscore"]].apply(pd.to_numeric)
 
         if weightcol is not None:
-            raw_table['weight'] = data.iloc[:, weightcol].copy() if isinstance(weightcol, int) else data.loc[:, weightcol].copy()
+            raw_table['weight'] = data.iloc[:, weightcol] if isinstance(weightcol, int) else data.loc[:, weightcol]
         else:
             raw_table['weight'] = 1.0
         
         if timecol is not None:
-            raw_table['time'] = data.iloc[:, timecol].copy() if isinstance(timecol, int) else data.loc[:, timecol].copy()
+            raw_table['time'] = data.iloc[:, timecol] if isinstance(timecol, int) else data.loc[:, timecol]
         
         if hostavantagecol is not None:
-            raw_table['hostavantage'] = data.iloc[:, hostavantagecol].copy() if isinstance(hostavantagecol, int) else data.loc[:, hostavantagecol].copy()
+            raw_table['hostavantage'] = data.iloc[:, hostavantagecol] if isinstance(hostavantagecol, int) else data.loc[:, hostavantagecol]
         else:
             raw_table['hostavantage'] = 0.0
 
