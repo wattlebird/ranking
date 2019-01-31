@@ -79,25 +79,6 @@ def difference_rank_test():
     print('Difference rank:')
     print(rst)
 
-def elo_rank_test():
-    data = Table(sample_with_time_1, col=['primary', 'secondary', 'rate1', 'rate2'], timecol='date')
-    ranker = EloRanker(data)
-    ranker.rank(ascending=False)
-
-def eld_rank_update_test():
-    data1 = Table(sample_with_time_1, col=['primary', 'secondary', 'rate1', 'rate2'], timecol='date')
-    data2 = Table(sample_with_time_2, col=['primary', 'secondary', 'rate1', 'rate2'], timecol='date')
-    ranker = EloRanker(data1)
-    r0 = ranker.rank(ascending=False)
-    r1 = ranker.update(data2)
-
-    data3 = Table(pd.concat([sample_with_time_1, sample_with_time_2]), col=['primary', 'secondary', 'rate1', 'rate2'], timecol='date')
-    ranker = EloRanker(data3)
-    r2 = ranker.rank(ascending=False)
-
-    assert_almost_equal(r1.rating.values, r2.rating.values)
-    assert_raises(AssertionError, assert_array_equal, r0.rating.values, r2.rating.values)
-
 def massey_rank_score_difference_test():
     table = Table(sample_paired, col=[0,1,2,3])
     ranker = MasseyRanker(table)

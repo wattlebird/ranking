@@ -11,6 +11,20 @@ sample_paired = pd.DataFrame({
         "rate2": [52, 24, 38, 45, 16, 17, 7, 5, 30, 52]
     }, columns=["primary", "secondary", "rate1", "rate2"])
 
-def df_read_test():
+def table_init_test():
+    Table()
+
+def table_load_test():
     data = Table(sample_paired, col=[0, 1, 2, 3])
     data = Table(sample_paired, ['primary', 'secondary', 'rate1', 'rate2'])
+    assert_equal(5, data.itemnum)
+
+def table_iteritem_test():
+    data = Table(sample_paired, ['primary', 'secondary', 'rate1', 'rate2'])
+    for rec in data.iteritem():
+        assert_true(hasattr(rec, 'host'))
+        assert_true(hasattr(rec, 'visit'))
+        assert_true(hasattr(rec, 'hscore'))
+        assert_true(hasattr(rec, 'vscore'))
+        assert_true(hasattr(rec, 'indexHost'))
+        assert_true(hasattr(rec, 'indexVisit'))
