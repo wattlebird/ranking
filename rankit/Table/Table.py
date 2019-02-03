@@ -4,8 +4,8 @@ import numpy as np
 
 
 class Record(object):
-    __slots__ = ['host', 'visit', 'hscore', 'vscore', 'indexHost', 'indexVisit', 'weight', 'time']
-    def __init__(self, host, visit, hscore, vscore, indexHost, indexVisit, weight=1, time=None):
+    __slots__ = ['host', 'visit', 'hscore', 'vscore', 'indexHost', 'indexVisit', 'weight', 'time', 'hostavantage']
+    def __init__(self, host, visit, hscore, vscore, indexHost, indexVisit, weight=1, time=None, hostavantage=0):
         self.host = host
         self.visit = visit
         self.hscore = hscore
@@ -14,6 +14,7 @@ class Record(object):
         self.indexVisit = indexVisit
         self.weight = weight
         self.time = time
+        self.hostavantage = hostavantage
 
 class Table(object):
     """ A Table object in rankit is equivalent to data. 
@@ -35,7 +36,7 @@ class Table(object):
     -------
     Table object to be fed to Rankers.
     """
-
+    # internal table should contain columns [host, visit, hscore, vscore, weight, time, hostavantage, hidx, vidx]
     def __init__(self, data=pd.DataFrame(columns=['host', 'visit', 'hscore', 'vscore', 'weight', 'time']), \
                  col=['host', 'visit', 'hscore', 'vscore'], \
                  weightcol=None, timecol=None, hostavantagecol=None):
@@ -46,9 +47,8 @@ class Table(object):
         if not isinstance(data, pd.DataFrame):
             raise ValueError("data should be pandas dataframe.")
 
-        raw_table = pd.DataFrame(data.iloc[:, col] if all(isinstance(i, int) for i in col) else data[col],
-                                 columns=["host", "visit", "hscore", "vscore"]
-                                )
+        raw_table = data.iloc[:, col] if all(isinstance(i, int) for i in col) else data.loc[:, col]
+        raw_table.columns=["host", "visit", "hscore", "vscore"]
         raw_table.loc[:, ["hscore", "vscore"]] = raw_table.loc[:, ["hscore", "vscore"]].apply(pd.to_numeric)
 
         if weightcol is not None:
@@ -58,6 +58,8 @@ class Table(object):
         
         if timecol is not None:
             raw_table['time'] = data.iloc[:, timecol] if isinstance(timecol, int) else data.loc[:, timecol]
+        else:
+            raw_table['time'] = None
         
         if hostavantagecol is not None:
             raw_table['hostavantage'] = data.iloc[:, hostavantagecol] if isinstance(hostavantagecol, int) else data.loc[:, hostavantagecol]
@@ -67,7 +69,7 @@ class Table(object):
         itemlut = dict()
         indexlut = []
         idx = 0
-        for row in raw_table.itertuples(index=False, name=None):
+        for row in raw_table.itertuples(index=False):
             if not row[0] in itemlut:
                 itemlut[row[0]] = idx
                 indexlut.append(row[0])
@@ -87,7 +89,7 @@ class Table(object):
 
         self.table = raw_table
 
-    def update_single(self, host, visit, hscore, vscore, time=None, weight=None):
+    def update_single(self, host, visit, hscore, vscore, time=None, weight=1.0, hostavantage=0.0):
         if host not in self.itemlut:
             self.itemlut[host] = len(self.indexlut)
             self.indexlut.append(host)
@@ -96,16 +98,22 @@ class Table(object):
             self.itemlut[visit] = len(self.indexlut)
             self.indexlut.append(visit)
             self.itemnum += 1
-            
+        
+        self.table.append(
+            pd.DataFrame([[host, visit, hscore, vscore, time, weight, hostavantage, self.itemlut[host], self.itemlut[visit]]],
+              columns=['host', 'visit', 'hscore', 'vscore', 'time', 'weight', 'hostavantage', 'hidx', 'vidx']
+            ),
+            ignore_index=True
+        )
 
     def setup(self, itemlut, indexlut, itemnum):
         self.itemlut = itemlut
         self.indexlut = indexlut
-        self.itemnum = idx
+        self.itemnum = itemnum
 
     def iteritem(self):
         for rec in self.table.itertuples(index=False):
-            yield Record(rec.host, rec.visit, rec.hscore, rec.vscore, self.itemlut[rec.host], self.itemlut[rec.visit])
+            yield Record(rec.host, rec.visit, rec.hscore, rec.vscore, rec.hidx, rec.vidx, rec.weight, rec.time, rec.hostavantage)
 
     def update(self, table):
         # update itemlut, indexlut, itemnum
@@ -120,9 +128,9 @@ class Table(object):
         # update self.table
         table.table.hidx = table.table.host.apply(lambda x: self.itemlut[x])
         table.table.vidx = table.table.visit.apply(lambda x: self.itemlut[x])
-        if table.table.columns.contains('time') and self.table.columns.contains('time') and \
-            table.table.time.min()<self.table.time.max():
-            raise ValueError('Given record\'s time should be no earlier than existing record.')
+        # if table.table.columns.contains('time') and self.table.columns.contains('time') and \
+        #     table.table.time.min()<self.table.time.max():
+        #     raise ValueError('Given record\'s time should be no earlier than existing record.')
         self.table = pd.concat([self.table, table.table], ignore_index=True)
 
 

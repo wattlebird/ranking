@@ -12,7 +12,11 @@ sample_paired = pd.DataFrame({
     }, columns=["primary", "secondary", "rate1", "rate2"])
 
 def table_init_test():
-    Table()
+    t = Table()
+    assert_true(hasattr(t, 'table'))
+    assert_true(hasattr(t, 'indexlut'))
+    assert_true(hasattr(t, 'itemnum'))
+    assert_true(hasattr(t, 'itemlut'))
 
 def table_load_test():
     data = Table(sample_paired, col=[0, 1, 2, 3])
@@ -28,3 +32,25 @@ def table_iteritem_test():
         assert_true(hasattr(rec, 'vscore'))
         assert_true(hasattr(rec, 'indexHost'))
         assert_true(hasattr(rec, 'indexVisit'))
+
+def table_update_test():
+    df = pd.DataFrame([['sdf', 'wef', 2, 2]], columns=['host', 'visit', 'hscore', 'vscore'])
+    t1 = Table()
+    t2 = Table(df, ['host', 'visit', 'hscore', 'vscore'])
+    t1.update(t2)
+    assert_true(t1.itemnum == 2)
+
+def table_setup_test():
+    itemlut = {
+        'sdf': 0,
+        'wef': 1,
+        'xdf': 2
+    }
+    indexlut = ['sdf', 'wef', 'xdf']
+    t1 = Table()
+    t1.setup(itemlut, indexlut, 3)
+
+    df = pd.DataFrame([['sdf', 'wef', 2, 2]], columns=['host', 'visit', 'hscore', 'vscore'])
+    t2 = Table(df, ['host', 'visit', 'hscore', 'vscore'])
+    t1.update(t2)
+    assert_true(t1.itemnum == 3)

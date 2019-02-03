@@ -3,7 +3,11 @@ from __future__ import absolute_import
 import numpy as np
 import pandas as pd
 from rankit.Table import Table
-from scipy.stats.norm import pdf, cdf
+from scipy.stats import norm
+import warnings
+
+pdf = norm.pdf
+cdf = norm.cdf
 
 class TimeSeriesRanker(object):
     """Base class for all time series ranking algorithms."""
@@ -46,8 +50,8 @@ class EloRanker(TimeSeriesRanker):
             self.data.setup(itemlut, indexlut, itemnum)
             # TODO: should one infer baseline from itemscoreLut here?
         
-    def update_single(self, host, visit, hscore, vscore, time, weight):
-        self.data.update_single(host, visit, hscore, vscore, time, weight)
+    def update_single(self, host, visit, hscore, vscore, time=None, weight=1.0, hostavantage=0.0):
+        self.data.update_single(host, visit, hscore, vscore, time=time, weight=weight, hostavantage=hostavantage)
         ih = self.data.itemlut[host]
         iv = self.data.itemlut[visit]
         if ih >= len(self.indexScoreLut):
@@ -55,7 +59,7 @@ class EloRanker(TimeSeriesRanker):
         if iv >= len(self.indexScoreLut):
             self.indexScoreLut.append(self.baseline)
         rh = self.indexScoreLut[ih]
-        rv = self.indexScoreLut[rv]
+        rv = self.indexScoreLut[iv]
 
         xi, K = self.xi, self.K
         s = 0.5 if hscore == vscore else (1 if hscore > vscore else 0)
@@ -72,7 +76,7 @@ class EloRanker(TimeSeriesRanker):
 
         xi, K = self.xi, self.K
         for rec in table.iteritem():
-            ih, iv, hscore, vscore = rec.indexHost, rec.indexVisit, rec.hscore, rec.vscore
+            ih, iv, hscore, vscore, weight = rec.indexHost, rec.indexVisit, rec.hscore, rec.vscore, rec.weight
             rh = self.indexScoreLut[ih]
             rv = self.indexScoreLut[iv]
             s = 0.5 if hscore == vscore else (1 if hscore > vscore else 0)
@@ -91,18 +95,20 @@ class EloRanker(TimeSeriesRanker):
 
     def leaderboard(self, method="min"):
         rtn = pd.DataFrame({
-            "name": self.data.indexlut
+            "name": self.data.indexlut,
             "rating": self.indexScoreLut
         }, columns=["name", "rating"])
         rtn['rank'] = rtn.rating.rank(method=method, ascending=False).astype(np.int32)
         return rtn.sort_values(by=['rating', 'name'], ascending=False).reset_index(drop=True)
 
 class TrueSkillRanker(TimeSeriesRanker):
-    def __init__(self, range=50, drawMargin=0, confidenceInterval=3, beta=1/2):
+    def __init__(self, range=50, drawMargin=0.01, confidenceInterval=3, beta=1/2):
         self.miu = confidenceInterval
         self.sigma = 1
         self.beta = 1
-        self.drawMargin = drawMargin
+        self.drawMargin = drawMargin if drawMargin != 0 else 0.01
+        if drawMargin == 0:
+            warnings.warn("drawMargin shouldn't be set to 0. 0.01 is set alternatively.")
         self.range = range
         self.data = Table()
         self.indexMiuLut = []
@@ -141,13 +147,13 @@ class TrueSkillRanker(TimeSeriesRanker):
             self.indexMiuLut = [itm for itm in itemMiuLut.values()]
             self.indexSigmaSqrLut = [itm for itm in itemSigmaSqrLut.values()]
     
-    def update_single(self, host, visit, hscore, vscore, time, weight):
+    def update_single(self, host, visit, hscore, vscore, time=None, weight=1.0, hostavantage=0.0):
         v, w, vt, wt, beta, drawMargin = TrueSkillRanker.v, TrueSkillRanker.w, TrueSkillRanker.vt, TrueSkillRanker.wt, self.beta, self.drawMargin
         self.data.update_single(host, visit, hscore, vscore, time, weight)
         ih = self.data.itemlut[host]
         iv = self.data.itemlut[visit]
         if ih >= len(self.indexMiuLut) or iv >= len(self.indexMiuLut) :
-            self.indexMiuLut = self.indexMiuLut[:] + [self.confidenceInterval] * (self.data.itemnum - len(self.indexMiuLut))
+            self.indexMiuLut = self.indexMiuLut[:] + [self.miu] * (self.data.itemnum - len(self.indexMiuLut))
             self.indexSigmaSqrLut = self.indexSigmaSqrLut[:] + [1] * (self.data.itemnum - len(self.indexSigmaSqrLut))
         mh = self.indexMiuLut[ih]
         mv = self.indexMiuLut[iv]
@@ -166,13 +172,14 @@ class TrueSkillRanker(TimeSeriesRanker):
             self.indexSigmaSqrLut[ih] *= (1 - sh * w(b*(mh - mv)/cs**(1/2), drawMargin/cs**(1/2)))
             self.indexSigmaSqrLut[iv] *= (1 - sv * w(b*(mv - mh)/cs**(1/2), drawMargin/cs**(1/2)))
 
-        return self.indexMiuLut[ih] - 3 * self.indexSigmaSqrLut[ih]**(1/2), self.indexMiuLut[iv] - 3 * self.indexSigmaSqrLut[iv]**(1/2)
+        r = self.range / self.miu / 2
+        return r * (self.indexMiuLut[ih] - 3 * self.indexSigmaSqrLut[ih]**(1/2)), self.indexMiuLut[iv] - 3 * self.indexSigmaSqrLut[iv]**(1/2)
         
     def update(self, table):
         v, w, vt, wt, beta, drawMargin = TrueSkillRanker.v, TrueSkillRanker.w, TrueSkillRanker.vt, TrueSkillRanker.wt, self.beta, self.drawMargin
         self.data.update(table)
         if self.data.itemnum > len(self.indexMiuLut) :
-            self.indexMiuLut = self.indexMiuLut[:] + [self.confidenceInterval] * (self.data.itemnum - len(self.indexMiuLut))
+            self.indexMiuLut = self.indexMiuLut[:] + [self.miu] * (self.data.itemnum - len(self.indexMiuLut))
             self.indexSigmaSqrLut = self.indexSigmaSqrLut[:] + [1] * (self.data.itemnum - len(self.indexSigmaSqrLut))
         
         for rec in table.iteritem():
@@ -195,6 +202,7 @@ class TrueSkillRanker(TimeSeriesRanker):
                 self.indexSigmaSqrLut[iv] *= (1 - sv * w(b*(mv - mh)/cs**(1/2), drawMargin/cs**(1/2)))
     
     def prob_win(self, host, visit):
+        beta = self.beta
         ih = self.data.itemlut[host]
         iv = self.data.itemlut[visit]
         mh = self.indexMiuLut[ih]
@@ -205,9 +213,10 @@ class TrueSkillRanker(TimeSeriesRanker):
         return cdf((mh-mv)/cs**(1/2))
 
     def leaderboard(self, method="min"):
+        r = self.range / self.miu / 2
         rtn = pd.DataFrame({
-            "name": self.data.indexlut
-            "rating": [i - 3*j**(1/2) for (i,j) in zip(self.indexMiuLut, self.indexSigmaSqrLut)]
+            "name": self.data.indexlut,
+            "rating": [r * (i - 3*j**(1/2)) for (i,j) in zip(self.indexMiuLut, self.indexSigmaSqrLut)]
         }, columns=["name", "rating"])
         rtn['rank'] = rtn.rating.rank(method=method, ascending=False).astype(np.int32)
         return rtn.sort_values(by=['rating', 'name'], ascending=False).reset_index(drop=True)
