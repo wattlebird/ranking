@@ -40,6 +40,12 @@ def table_update_test():
     t1.update(t2)
     assert_true(t1.itemnum == 2)
 
+def table_update_raw_test():
+    df = pd.DataFrame([['sdf', 'wef', 2, 2]], columns=['host', 'visit', 'hscore', 'vscore'])
+    t1 = Table()
+    t1.update_raw(df)
+    assert_true(t1.itemnum == 2)
+
 def table_setup_test():
     itemlut = {
         'sdf': 0,

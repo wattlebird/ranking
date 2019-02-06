@@ -134,6 +134,26 @@ class Table(object):
         self.table = pd.concat([self.table, table.table], ignore_index=True)
 
 
+    def update_raw(self, dataFrame, *, col=['host', 'visit', 'hscore', 'vscore'], weightcol=None, timecol=None, hostavantagecol=None):
+        # update itemlut, indexlut, itemnum
+        p = len(self.indexlut)
+        players = pd.concat([dataFrame[col].iloc[:, 0], dataFrame[col].iloc[:, 1]], ignore_index=True).unique()
+        for player in players:
+            if self.itemlut.get(player) is None:
+                self.itemlut[player] = p
+                self.indexlut.append(player)
+                p += 1
+        self.itemnum = p
+
+        # update self.table
+        newTable = dataFrame.loc[:, col]
+        newTable['weight'] = 1.0 if weightcol is None else dataFrame.loc[:, weightcol]
+        newTable['time'] = None if timecol is None else dataFrame.loc[:, timecol]
+        newTable['hostavantage'] = 0.0 if hostavantagecol is None else dataFrame.loc[:, hostavantagecol]
+        newTable['hidx'] = newTable.host.apply(lambda x: self.itemlut[x])
+        newTable['vidx'] = newTable.visit.apply(lambda x: self.itemlut[x])
+        self.table = pd.concat([self.table, newTable], ignore_index=True)
+
     def getitemlist(self):
         return self.table[["host", "visit"]].copy()
 

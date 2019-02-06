@@ -1,4 +1,4 @@
-from rankit.Ranker import EloRanker, TrueSkillRanker
+from rankit.Ranker import EloRanker, TrueSkillRanker, GlickoRanker
 from rankit.Table import Table
 import pandas as pd
 from numpy.testing import assert_array_equal, assert_array_almost_equal
@@ -62,3 +62,23 @@ def trueskill_prob_win_test():
     tsRanker = TrueSkillRanker()
     tsRanker.update(table)
     assert_true(tsRanker.prob_win(4,1) > 0.5)
+
+def glicko_leaderboard_test():
+    table = Table(sample_with_time_1, ['primary', 'secondary', 'rate1', 'rate2'], timecol='date')
+    gRanker = GlickoRanker()
+    gRanker.update(table)
+    lb = gRanker.leaderboard()
+    return lb
+
+def glicko_update_test():
+    table1 = Table(sample_with_time_1, ['primary', 'secondary', 'rate1', 'rate2'], timecol='date')
+    table2 = Table(sample_with_time_2, ['primary', 'secondary', 'rate1', 'rate2'], timecol='date')
+    gRanker = GlickoRanker()
+    gRanker.update(table1)
+    gRanker.update(table2)
+
+def glicko_prob_win_test():
+    table = Table(sample_with_time_1, ['primary', 'secondary', 'rate1', 'rate2'], timecol='date')
+    gRanker = GlickoRanker()
+    gRanker.update(table)
+    assert_true(gRanker.prob_win(4, 1) > 0.5)

@@ -31,10 +31,11 @@ class TimeSeriesRanker(object):
         raise NotImplementedError("TimeSeriesRanker is a abstract class.")
 
 class EloRanker(TimeSeriesRanker):
-    def __init__(self, K=10, xi=400, baseline=1500):
+    def __init__(self, K=10, xi=400, baseline=1500, drawMargin=0):
         self.K = K
         self.xi = xi
         self.baseline = baseline
+        self.drawMargin = drawMargin
         self.data = Table()
         self.indexScoreLut = []
         
@@ -64,7 +65,7 @@ class EloRanker(TimeSeriesRanker):
         rv = self.indexScoreLut[iv]
 
         xi, K = self.xi, self.K
-        s = 0.5 if hscore == vscore else (1 if hscore > vscore else 0)
+        s = 0.5 if abs(hscore - vscore) <= self.drawMargin else (1 if hscore > vscore else 0)
         phwin = 1/(1+10**((rv - rh)/xi))
         alpha = (abs(hscore-vscore)+3)**0.8/(7.5+0.0006*(rh - rv))
         delta = K*weight*alpha*(s-phwin)
@@ -81,7 +82,7 @@ class EloRanker(TimeSeriesRanker):
             ih, iv, hscore, vscore, weight = rec.indexHost, rec.indexVisit, rec.hscore, rec.vscore, rec.weight
             rh = self.indexScoreLut[ih]
             rv = self.indexScoreLut[iv]
-            s = 0.5 if hscore == vscore else (1 if hscore > vscore else 0)
+            s = 0.5 if abs(hscore - vscore) <= self.drawMargin else (1 if hscore > vscore else 0)
             phwin = 1/(1+10**((rv - rh)/xi))
             alpha = (abs(hscore-vscore)+3)**0.8/(7.5+0.0006*(rh - rv))
             delta = K*weight*alpha*(s-phwin)
@@ -218,25 +219,25 @@ class TrueSkillRanker(TimeSeriesRanker):
         r = self.range / self.miu / 2
         rtn = pd.DataFrame({
             "name": self.data.indexlut,
-            "rating": [r * (i - 3*j**(1/2)) for (i,j) in zip(self.indexMiuLut, self.indexSigmaSqrLut)]
+            "rating": [r * (i - 1.96*j**(1/2)) for (i,j) in zip(self.indexMiuLut, self.indexSigmaSqrLut)]
         }, columns=["name", "rating"])
         rtn['rank'] = rtn.rating.rank(method=method, ascending=False).astype(np.int32)
         return rtn.sort_values(by=['rating', 'name'], ascending=False).reset_index(drop=True)
 
 class GlickoRanker(TimeSeriesRanker):
-    def __init__(self, *, baseline = 1500, rd = 350, votality = 0.06, tau = 0.5, epsilon = 0.000001):
-        self.baseline = rating
+    def __init__(self, *, baseline = 1500, rd = 350, votality = 0.06, tau = 0.5, epsilon = 0.000001, drawMargin = 0):
+        self.baseline = baseline
         self.rd = rd
         self.votality = votality
         self.tau = tau
         self.epsilon = epsilon
+        self.drawMargin = drawMargin
         self.data = Table()
         self.miu = [] # normalized rating
         self.phi = [] # normalized rd
         self.sigma = [] # votality
-        # stateful variables, valid in each rating period
-        self.v = dict()
-        self.delta = dict()
+        
+        self.factor = 400 / math.log(10)
         
     @staticmethod
     def g(phi):
@@ -244,10 +245,10 @@ class GlickoRanker(TimeSeriesRanker):
     
     @staticmethod
     def E(miu, miut, phit):
+        g = GlickoRanker.g
         return 1/(1+math.exp(g(phit)*(miut-miu)))
 
-    @staticmethod
-    def volatility_iter(deltaSqr, phiSqr, sigma, votality):
+    def volatility_iter(self, deltaSqr, phiSqr, sigma, votality):
         epsilon, tau = self.epsilon, self.tau
         f = lambda x: math.exp(x) * (deltaSqr - phiSqr - votality - math.exp(x)) / 2 / (phiSqr + votality + math.exp(x))**2 - (x - math.log(sigma**2)) / tau**2
         A = 2 * math.log(sigma)
@@ -261,7 +262,7 @@ class GlickoRanker(TimeSeriesRanker):
         fA = f(A)
         fB = f(B)
         while abs(B-A) > epsilon:
-            C = A + (A-B)*fA(fB-fA)
+            C = A + (A-B)*fA/(fB-fA)
             fC = f(C)
             if fC*fB<0:
                 A = B
@@ -297,49 +298,80 @@ class GlickoRanker(TimeSeriesRanker):
             self.phi[i] = itemPhiLut[k]
             self.sigma[i] = itemSigmaLut[k]
 
-    def update(self, table):
+    def update_single_batch(self, dataFrame):
         # check time info
-        if table.table.time.iloc[0] is None:
-            warnings.warn("The table to be updated misses time information. In that case, the whole table record will be updated in a single rating period.")
-        else if self.data.table.shape[0] > 0 and table.table.time.iloc[0] <= self.data.table.time.iloc[-1]:
-            warnings.warn("The table to be updated is recorded in a time before or equal to existing period. We could not update players' info in a delayed manner. The time sequence will be discarded.")
-        g, E, volatility_iter, drawMargin = GlickoRanker.g, GlickoRanker.E, GlickoRanker.volatility_iter, self.drawMargin
-        self.data.update(table)
+        g, E, volatility_iter, drawMargin = GlickoRanker.g, GlickoRanker.E, self.volatility_iter, self.drawMargin
+        self.data.update_raw(dataFrame, weightcol='weight', timecol='time', hostavantagecol='hostavantage')
         if self.data.itemnum > len(self.miu) :
-            self.miu = self.miu[:] + [(self.baseline - 1500) / 173.7178] * (self.data.itemnum - len(self.miu))
-            self.phi = self.phi[:] + [self.rd / 173.7178] * (self.data.itemnum - len(self.phi))
+            self.miu = self.miu[:] + [0] * (self.data.itemnum - len(self.miu))
+            self.phi = self.phi[:] + [self.rd / self.factor] * (self.data.itemnum - len(self.phi))
             self.sigma = self.sigma[:] + [self.tau] * (self.data.itemnum - len(self.sigma))
         
         mtx = pd.DataFrame(data={
-            'hidx': pd.concat([table.table.hidx, table.table.vidx]),
-            'vidx': pd.concat([table.table.vidx, table.table.hidx]),
-            'hscore': pd.concat([table.table.hscore, table.table.vscore]),
-            'vscore': pd.concat([table.table.vscore, table.table.hscore]),
-            'weight': pd.concat([table.table.weight, table.table.weight]),
-            'time': pd.concat([table.table.time, table.table.time])
-        }, columns = ['hidx', 'vidx', 'hscore', 'vscore', 'weight', 'time']).reset_index(drop=True).sort_values(by=['time', 'hidx'])
-        
-        for grp in mtx.groupby(by='time'):
-            cur_time, gp = grp
-            gx = dict()
-            ex = dict()
-            vx = dict()
-            for i in gp.hidx.unique():
-                gx[i] = g(self.phi[i])
-            for recs in gp.groupby(by='hidx'):
-                player, results = recs
-                vt = []
-                dt = []
-                for rec in results.itertuples(index=False):
-                    s = 0.5 if abs(rec.hscore - rec.vscore) <= drawMargin else (0 if rec.hscore < rec.vscore else 1)
-                    ex[(rec.hidx, rec.vidx)] = E(self.miu[rec.hidx], self.miu[rec.vidx], self.phi[rec.vidx])
-                    vt.append(gx[rec.vidx]**2 * ex[(rec.hidx, rec.vidx)] * (1 - ex[(rec.hidx, rec.vidx)]))
-                    dt.append(gx[rec.vidx] * (s - ex[(rec.hidx, rec.vidx)]))
-                v = 1/vt.sum()
-                delta = v*dt.sum()
-                sigma_ = volatility_iter(delta**2, self.phi[player]**2, self.sigma[player], self.votality)
-                phiSqr_ = (self.phi[player]**2 + sigma_**2)
-                self.phi[player] = 1/(1/phiSqr_ + 1/v)**(1/2)
-                self.miu[player] += self.phi[player]**2 * dt.sum()
+            'host': pd.concat([dataFrame.host, dataFrame.visit]),
+            'visit': pd.concat([dataFrame.visit, dataFrame.host]),
+            'hscore': pd.concat([dataFrame.hscore, dataFrame.vscore]),
+            'vscore': pd.concat([dataFrame.vscore, dataFrame.hscore]),
+            'weight': pd.concat([dataFrame.weight, dataFrame.weight]),
+            'time': pd.concat([dataFrame.time, dataFrame.time])
+        }, columns = ['host', 'visit', 'hscore', 'vscore', 'weight', 'time']).reset_index(drop=True).sort_values(by=['time', 'host'])
 
-                
+        gx = dict()
+        ex = dict()
+        vx = dict()
+        players = set(mtx.host)
+        for host in players:
+            hidx = self.data.itemlut[host]
+            gx[hidx] = g(self.phi[hidx])
+        for recs in mtx.groupby(by='host'):
+            host, results = recs
+            hidx = self.data.itemlut[host]
+            vt = []
+            dt = []
+            for rec in results.itertuples(index=False):
+                vidx = self.data.itemlut[rec.visit]
+                s = 0.5 if abs(rec.hscore - rec.vscore) <= drawMargin else (0 if rec.hscore < rec.vscore else 1)
+                ex[(hidx, vidx)] = E(self.miu[hidx], self.miu[vidx], self.phi[vidx])
+                vt.append(gx[vidx]**2 * ex[(hidx, vidx)] * (1 - ex[(hidx, vidx)]))
+                dt.append(gx[vidx] * (s - ex[(hidx, vidx)]))
+            v = 1/sum(vt)
+            delta = v*sum(dt)
+            sigma_ = volatility_iter(delta**2, self.phi[hidx]**2, self.sigma[hidx], self.votality)
+            phiSqr_ = (self.phi[hidx]**2 + sigma_**2)
+            self.phi[hidx] = 1/(1/phiSqr_ + 1/v)**(1/2)
+            self.miu[hidx] += self.phi[hidx]**2 * sum(dt)
+        
+        # for players not attended, their RD will increase.
+        for kv in self.data.itemlut.items():
+            player, idx = kv
+            if player not in players:
+                self.phi[idx] = math.sqrt(self.phi[idx]**2 + self.sigma[idx]**2)
+
+    def update(self, table):
+        # Check time info
+        if self.data.table.shape[0] > 0 and self.data.table.time.iloc[-1] is not None:
+            if table.table.time.iloc[0] is None:
+                warnings.warn("The table to be updated misses time information. In that case, the whole table record will be updated in a single rating period.")
+            elif table.table.time.iloc[0] <= self.data.table.time.iloc[-1]:
+                warnings.warn("The table to be updated is recorded in a time before or equal to existing period. We could not update players' info in a delayed manner. The time sequence will be discarded.")
+
+        for grp in table.table.groupby(by='time'):
+            cur_time, gp = grp
+            self.update_single_batch(gp)
+
+    def update_single(self, *args, **kwargs):
+        raise Exception("Update single is not allowed in Glicko 2 ranking algorithm. You must specify the rating period explicitly in time column wrapped in Table.")
+
+    def prob_win(self, host, visit):
+        E = GlickoRanker.E
+        hidx = self.data.itemlut[host]
+        vidx = self.data.itemlut[visit]
+        return E(self.miu[hidx], self.miu[vidx], math.sqrt(self.phi[hidx]**2 + self.phi[vidx]**2))
+
+    def leaderboard(self, method="min"):
+        rtn = pd.DataFrame({
+            "name": self.data.indexlut,
+            "rating": [self.factor * (i - 1.96*j) + self.baseline for (i,j) in zip(self.miu, self.phi)]
+        }, columns=["name", "rating"])
+        rtn['rank'] = rtn.rating.rank(method=method, ascending=False).astype(np.int32)
+        return rtn.sort_values(by=['rating', 'name'], ascending=False).reset_index(drop=True)
