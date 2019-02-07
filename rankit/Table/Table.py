@@ -100,8 +100,8 @@ class Table(object):
             self.itemnum += 1
         
         self.table.append(
-            pd.DataFrame([[host, visit, hscore, vscore, time, weight, hostavantage, self.itemlut[host], self.itemlut[visit]]],
-              columns=['host', 'visit', 'hscore', 'vscore', 'time', 'weight', 'hostavantage', 'hidx', 'vidx']
+            pd.DataFrame([[host, visit, hscore, vscore, weight, time, hostavantage, self.itemlut[host], self.itemlut[visit]]],
+              columns=['host', 'visit', 'hscore', 'vscore', 'weight', 'time', 'hostavantage', 'hidx', 'vidx']
             ),
             ignore_index=True
         )

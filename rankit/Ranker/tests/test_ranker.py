@@ -33,84 +33,36 @@ sample_with_time_2 = pd.DataFrame({
 
 def colley_rank_test():
     data = Table(sample_paired, col=[0,1,2,3])
-    r = ColleyRanker(table = data)
-    rst = r.rank(ascending=False)
+    r = ColleyRanker()
+    rst = r.rank(data)
     assert_array_almost_equal(rst.loc[:, 'rating'].values, 
                               np.array([0.79, 0.65, 0.50, 0.36, 0.21]),decimal=2)
 
 def massey_rank_test():
     data = Table(sample_paired, col=[0,1,2,3])
-    r = MasseyRanker(table = data)
-    rst = r.rank(ascending=False)
+    r = MasseyRanker()
+    rst = r.rank(data)
     assert_array_almost_equal(rst.loc[:, 'rating'].values, 
                               np.array([18.2, 18.0, -3.4, -8.0, -24.8]),decimal=2)
 
 def keener_rank_test():
     data = Table(sample_paired, col=[0,1,2,3])
-    r = KeenerRanker(table = data)
-    rst = r.rank(ascending=False)
-    print('Keener rank:')
-    print(rst)
+    r = KeenerRanker()
+    rst = r.rank(data)
 
 def markov_rank_test():
     data = Table(sample_paired, col=[0,1,2,3])
-    r = MarkovRanker(table = data)
-    rst = r.rank(ascending=False)
-    print('Markov rank:')
-    print(rst)
+    r = MarkovRanker()
+    rst = r.rank(data)
 
 def od_rank_test():
     data = Table(sample_paired, col=[0,1,2,3])
-    r = ODRanker(table = data)
-    rst = r.rank(output='summary', ascending=False)
-    print('OD rank: overall rank:')
-    print(rst)
-    rst = r.rank(output='offence', ascending=False)
-    print('OD rank: offence rank:')
-    print(rst)
-    rst = r.rank(output='defence', ascending=True)
-    print('OD rank: defence rank:')
-    print(rst)
+    r1 = ODRanker(method='summary')
+    rst = r1.rank(data)
+    r2 = ODRanker(method='defence')
+    rst = r2.rank(data)
 
 def difference_rank_test():
     data = Table(sample_paired, col=[0,1,2,3])
-    r = DifferenceRanker(table = data)
-    rst = r.rank(ascending=False)
-    print('Difference rank:')
-    print(rst)
-
-def massey_rank_score_difference_test():
-    table = Table(sample_paired, col=[0,1,2,3])
-    ranker = MasseyRanker(table)
-    rank = ranker.rank()
-    rank = rank.set_index('name')
-    score_diff = ranker.score_diff(sample_paired.primary.values, sample_paired.secondary.values)
-    t = sample_paired.merge(rank, left_on='primary', right_index=True).\
-        merge(rank, left_on='secondary', right_index=True).\
-        sort_index()
-    score_diff_2 = t.rating_x - t.rating_y
-    assert_almost_equal(score_diff, score_diff_2)
-
-def keener_rank_score_difference_test():
-    table = Table(sample_paired, col=[0,1,2,3])
-    ranker = KeenerRanker(table)
-    rank = ranker.rank()
-    rank = rank.set_index('name')
-    score_diff = ranker.score_diff(sample_paired.primary.values, sample_paired.secondary.values)
-    t = sample_paired.merge(rank, left_on='primary', right_index=True).\
-        merge(rank, left_on='secondary', right_index=True).\
-        sort_index()
-    score_diff_2 = t.rating_x - t.rating_y
-    assert_almost_equal(score_diff, score_diff_2)
-
-def difference_rank_score_difference_test():
-    table = Table(sample_paired, col=[0,1,2,3])
-    ranker = DifferenceRanker(table)
-    rank = ranker.rank()
-    rank = rank.set_index('name')
-    score_diff = ranker.score_diff(sample_paired.primary.values, sample_paired.secondary.values)
-    t = sample_paired.merge(rank, left_on='primary', right_index=True).\
-        merge(rank, left_on='secondary', right_index=True).\
-        sort_index()
-    score_diff_2 = t.rating_x - t.rating_y
-    assert_almost_equal(score_diff, score_diff_2)
+    r = DifferenceRanker()
+    rst = r.rank(data)
