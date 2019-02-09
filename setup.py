@@ -25,7 +25,7 @@ def my_build_ext(pars):
     return build_ext(pars)
 
 setup(name="rankit",
-      version="0.2.2",
+      version="0.3.0",
       packages=find_packages(exclude=['example']),
       setup_requires=['numpy', 'Cython'],
       install_requires=required,

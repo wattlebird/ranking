@@ -39,36 +39,40 @@ class EloRanker(TimeSeriesRanker):
         self.data = Table()
         self.indexScoreLut = []
         
-    def setup(self, itemScoreLut = dict()):
-        if len(itmScoreLut) != 0:
+    def setup(self, itemRatingLut = dict()):
+        if len(itemRatingLut) != 0:
             # derive itemlut, indexlut and itemnum from itmScoreLut to setup self.data
-            itemnum = len(itemScoreLut)
+            itemnum = len(itemRatingLut)
             itemlut = dict() # from item to index
             indexlut = [] # from index to item
-            for i, itm in enumerate(itemScoreLut.items()):
+            for i, itm in enumerate(itemRatingLut.items()):
                 k, v = itm
                 itemlut[i] = k
                 indexlut.append(k)
                 self.indexScoreLut.append(v)
             self.data.setup(itemlut, indexlut, itemnum)
             # TODO: should one infer baseline from itemscoreLut here?
+        elif self.data.itemnum == 0:
+            self.indexScoreLut = []
         
-    def update_single(self, host, visit, hscore, vscore, time=None, weight=1.0, hostavantage=0.0):
-        self.data.update_single(host, visit, hscore, vscore, time=time, weight=weight, hostavantage=hostavantage)
+    def update_single(self, host, visit, hscore, vscore, time="", hostavantage=0.0):
+        self.data.update_single(host, visit, hscore, vscore, time=time, hostavantage=hostavantage)
         ih = self.data.itemlut[host]
         iv = self.data.itemlut[visit]
         if ih >= len(self.indexScoreLut):
             self.indexScoreLut.append(self.baseline)
         if iv >= len(self.indexScoreLut):
             self.indexScoreLut.append(self.baseline)
-        rh = self.indexScoreLut[ih]
-        rv = self.indexScoreLut[iv]
+        ha = 0 if hostavantage<0 else hostavantage
+        va = 0 if hostavantage>0 else -hostavantage
+        rh = self.indexScoreLut[ih] + ha
+        rv = self.indexScoreLut[iv] + va
 
         xi, K = self.xi, self.K
         s = 0.5 if abs(hscore - vscore) <= self.drawMargin else (1 if hscore > vscore else 0)
         phwin = 1/(1+10**((rv - rh)/xi))
         alpha = (abs(hscore-vscore)+3)**0.8/(7.5+0.0006*(rh - rv))
-        delta = K*weight*alpha*(s-phwin)
+        delta = K*alpha*(s-phwin)
         self.indexScoreLut[ih] += delta
         self.indexScoreLut[iv] -= delta
         return (self.indexScoreLut[ih], self.indexScoreLut[iv])
@@ -79,13 +83,15 @@ class EloRanker(TimeSeriesRanker):
 
         xi, K = self.xi, self.K
         for rec in table.iteritem():
-            ih, iv, hscore, vscore, weight = rec.indexHost, rec.indexVisit, rec.hscore, rec.vscore, rec.weight
-            rh = self.indexScoreLut[ih]
-            rv = self.indexScoreLut[iv]
+            ih, iv, hscore, vscore, hostavantage = rec.indexHost, rec.indexVisit, rec.hscore, rec.vscore, rec.hostavantage
+            ha = 0 if hostavantage<0 else hostavantage
+            va = 0 if hostavantage>0 else -hostavantage
+            rh = self.indexScoreLut[ih] + ha
+            rv = self.indexScoreLut[iv] + va
             s = 0.5 if abs(hscore - vscore) <= self.drawMargin else (1 if hscore > vscore else 0)
             phwin = 1/(1+10**((rv - rh)/xi))
             alpha = (abs(hscore-vscore)+3)**0.8/(7.5+0.0006*(rh - rv))
-            delta = K*weight*alpha*(s-phwin)
+            delta = K*alpha*(s-phwin)
             self.indexScoreLut[ih] += delta
             self.indexScoreLut[iv] -= delta
 
@@ -105,14 +111,15 @@ class EloRanker(TimeSeriesRanker):
         return rtn.sort_values(by=['rating', 'name'], ascending=False).reset_index(drop=True)
 
 class TrueSkillRanker(TimeSeriesRanker):
-    def __init__(self, range=50, drawMargin=0.01, confidenceInterval=3, beta=1/2):
-        self.miu = confidenceInterval
+    def __init__(self, baseline=1500, rd=500, drawMargin=0.01, beta=1/2):
+        self.miu = baseline / rd
         self.sigma = 1
-        self.beta = 1
+        self.baseline = baseline
+        self.rd = rd
+        self.beta = beta
         self.drawMargin = drawMargin if drawMargin != 0 else 0.01
         if drawMargin == 0:
             warnings.warn("drawMargin shouldn't be set to 0. 0.01 is set alternatively.")
-        self.range = range
         self.data = Table()
         self.indexMiuLut = []
         self.indexSigmaSqrLut = []
@@ -133,41 +140,49 @@ class TrueSkillRanker(TimeSeriesRanker):
     def wt(t, a):
         return TrueSkillRanker.vt(t, a) ** 2 + ((a-t)*pdf(a-t)-(a+t)*pdf(a+t))/(cdf(a - t) - cdf(- a - t))
 
-    def setup(self, itemMiuLut = dict(), itemSigmaSqrLut = dict()):
-        if len(itemMiuLut) != len(itemSigmaSqrLut):
-            raise Exception("Number of items in miu lut and sigmaSqr lut are not equal.")
-        if len(itemMiuLut) != 0:
+    def setup(self, itemRatingLut = dict(), itemRDLut = dict()):
+        player = set(itemRatingLut.keys())
+        player.update(itemRDLut.keys())
+        if len(player) != 0:
             # derive itemlut, indexlut and itemnum from itmScoreLut to setup self.data
-            itemnum = len(itemMiuLut)
+            itemnum = len(player)
             itemlut = dict() # from item to index
             indexlut = [] # from index to item
-            for i, itm in enumerate(itemMiuLut.items()):
-                k, v = itm
-                itemlut[i] = k
-                indexlut.append(k)
+            miu = []
+            sigmasqr = []
+            for i, itm in enumerate(player):
+                itemlut[itm] = i
+                indexlut.append(itm)
+                miu.append((itemRatingLut.get(itm, self.baseline)) / self.rd)
+                sigmasqr.append((itemRDLut.get(itm, self.rd) / self.rd)**2)
             self.data.setup(itemlut, indexlut, itemnum)
 
-            self.indexMiuLut = [itm for itm in itemMiuLut.values()]
-            self.indexSigmaSqrLut = [itm for itm in itemSigmaSqrLut.values()]
+            self.indexMiuLut = miu
+            self.indexSigmaSqrLut = sigmasqr
+        elif self.data.itemnum == 0:
+            self.indexMiuLut = []
+            self.indexSigmaSqrLut = []
     
-    def update_single(self, host, visit, hscore, vscore, time=None, weight=1.0, hostavantage=0.0):
+    def update_single(self, host, visit, hscore, vscore, time="", hostavantage=0.0):
         v, w, vt, wt, beta, drawMargin = TrueSkillRanker.v, TrueSkillRanker.w, TrueSkillRanker.vt, TrueSkillRanker.wt, self.beta, self.drawMargin
-        self.data.update_single(host, visit, hscore, vscore, time, weight)
+        self.data.update_single(host, visit, hscore, vscore, time=time)
         ih = self.data.itemlut[host]
         iv = self.data.itemlut[visit]
         if ih >= len(self.indexMiuLut) or iv >= len(self.indexMiuLut) :
             self.indexMiuLut = self.indexMiuLut[:] + [self.miu] * (self.data.itemnum - len(self.indexMiuLut))
             self.indexSigmaSqrLut = self.indexSigmaSqrLut[:] + [1] * (self.data.itemnum - len(self.indexSigmaSqrLut))
-        mh = self.indexMiuLut[ih]
-        mv = self.indexMiuLut[iv]
+        ha = 0 if hostavantage<0 else hostavantage
+        va = 0 if hostavantage>0 else -hostavantage
+        mh = self.indexMiuLut[ih] + ha
+        mv = self.indexMiuLut[iv] + va
         sh = self.indexSigmaSqrLut[ih]
         sv = self.indexSigmaSqrLut[iv]
         cs = sh + sv + 2*beta*beta
         if abs(hscore - vscore) <= drawMargin:
-            self.indexMiuLut[ih] = mh + sh*vt(0, drawMargin/cs**(1/2))/cs**(1/2)
-            self.indexMiuLut[iv] = mv + sv*vt(0, drawMargin/cs**(1/2))/cs**(1/2)
-            self.indexSigmaSqrLut[ih] = sh*(1 - sh/cs*wt(0, drawMargin/cs**(1/2)))
-            self.indexSigmaSqrLut[iv] = sh*(1 - sv/cs*wt(0, drawMargin/cs**(1/2)))
+            self.indexMiuLut[ih] += sh*vt(0, drawMargin/cs**(1/2))/cs**(1/2)
+            self.indexMiuLut[iv] += sv*vt(0, drawMargin/cs**(1/2))/cs**(1/2)
+            self.indexSigmaSqrLut[ih] *= (1 - sh/cs*wt(0, drawMargin/cs**(1/2)))
+            self.indexSigmaSqrLut[iv] *= (1 - sv/cs*wt(0, drawMargin/cs**(1/2)))
         else:
             b = 1 if hscore > vscore + drawMargin else -1
             self.indexMiuLut[ih] += b * sh * v(b*(mh - mv)/cs**(1/2), drawMargin/cs**(1/2)) /cs**(1/2)
@@ -175,8 +190,7 @@ class TrueSkillRanker(TimeSeriesRanker):
             self.indexSigmaSqrLut[ih] *= (1 - sh * w(b*(mh - mv)/cs**(1/2), drawMargin/cs**(1/2)))
             self.indexSigmaSqrLut[iv] *= (1 - sv * w(b*(mv - mh)/cs**(1/2), drawMargin/cs**(1/2)))
 
-        r = self.range / self.miu / 2
-        return r * (self.indexMiuLut[ih] - 3 * self.indexSigmaSqrLut[ih]**(1/2)), self.indexMiuLut[iv] - 3 * self.indexSigmaSqrLut[iv]**(1/2)
+        return (self.rd * (self.indexMiuLut[ih] - 1.96 * self.indexSigmaSqrLut[ih]**(1/2)) + (self.baseline - 3 * self.rd), self.rd * (self.indexMiuLut[iv] - 1.96 * self.indexSigmaSqrLut[iv]**(1/2)) + (self.baseline - 3 * self.rd) )
         
     def update(self, table):
         v, w, vt, wt, beta, drawMargin = TrueSkillRanker.v, TrueSkillRanker.w, TrueSkillRanker.vt, TrueSkillRanker.wt, self.beta, self.drawMargin
@@ -186,17 +200,19 @@ class TrueSkillRanker(TimeSeriesRanker):
             self.indexSigmaSqrLut = self.indexSigmaSqrLut[:] + [1] * (self.data.itemnum - len(self.indexSigmaSqrLut))
         
         for rec in table.iteritem():
-            ih, iv, hscore, vscore = rec.indexHost, rec.indexVisit, rec.hscore, rec.vscore
-            mh = self.indexMiuLut[ih]
-            mv = self.indexMiuLut[iv]
+            ih, iv, hscore, vscore, hostavantage = rec.indexHost, rec.indexVisit, rec.hscore, rec.vscore, rec.hostavantage
+            ha = 0 if hostavantage<0 else hostavantage
+            va = 0 if hostavantage>0 else -hostavantage
+            mh = self.indexMiuLut[ih] + ha
+            mv = self.indexMiuLut[iv] + va
             sh = self.indexSigmaSqrLut[ih]
             sv = self.indexSigmaSqrLut[iv]
             cs = sh + sv + 2*beta*beta
             if abs(hscore - vscore) <= drawMargin:
-                self.indexMiuLut[ih] = mh + sh*vt(0, drawMargin/cs**(1/2))/cs**(1/2)
-                self.indexMiuLut[iv] = mv + sv*vt(0, drawMargin/cs**(1/2))/cs**(1/2)
-                self.indexSigmaSqrLut[ih] = sh*(1 - sh/cs*wt(0, drawMargin/cs**(1/2)))
-                self.indexSigmaSqrLut[iv] = sh*(1 - sv/cs*wt(0, drawMargin/cs**(1/2)))
+                self.indexMiuLut[ih] += sh*vt(0, drawMargin/cs**(1/2))/cs**(1/2)
+                self.indexMiuLut[iv] += sv*vt(0, drawMargin/cs**(1/2))/cs**(1/2)
+                self.indexSigmaSqrLut[ih] *= (1 - sh/cs*wt(0, drawMargin/cs**(1/2)))
+                self.indexSigmaSqrLut[iv] *= (1 - sv/cs*wt(0, drawMargin/cs**(1/2)))
             else:
                 b = 1 if hscore > vscore + drawMargin else -1
                 self.indexMiuLut[ih] += b * sh * v(b*(mh - mv)/cs**(1/2), drawMargin/cs**(1/2)) /cs**(1/2)
@@ -216,16 +232,15 @@ class TrueSkillRanker(TimeSeriesRanker):
         return cdf((mh-mv)/cs**(1/2))
 
     def leaderboard(self, method="min"):
-        r = self.range / self.miu / 2
         rtn = pd.DataFrame({
             "name": self.data.indexlut,
-            "rating": [r * (i - 1.96*j**(1/2)) for (i,j) in zip(self.indexMiuLut, self.indexSigmaSqrLut)]
+            "rating": [self.rd * (i - 1.96*j**(1/2) - 3) + self.baseline for (i,j) in zip(self.indexMiuLut, self.indexSigmaSqrLut)]
         }, columns=["name", "rating"])
         rtn['rank'] = rtn.rating.rank(method=method, ascending=False).astype(np.int32)
         return rtn.sort_values(by=['rating', 'name'], ascending=False).reset_index(drop=True)
 
 class GlickoRanker(TimeSeriesRanker):
-    def __init__(self, *, baseline = 1500, rd = 350, votality = 0.06, tau = 0.5, epsilon = 0.000001, drawMargin = 0):
+    def __init__(self, baseline = 1500, rd = 350, votality = 0.06, tau = 0.5, epsilon = 0.000001, drawMargin = 0):
         self.baseline = baseline
         self.rd = rd
         self.votality = votality
@@ -273,30 +288,38 @@ class GlickoRanker(TimeSeriesRanker):
             fB = fC
         return math.exp(A/2)
 
-    def setup(self, itemRatingLut = dict(), itemPhiLut = dict(), itemSigmaLut = dict()):
+    def setup(self, itemRatingLut = dict(), itemRDLut = dict(), itemVolatilityLut = dict()):
         # TODO: By using this function, users have to know exactly the existing user rating, RD and volatility, which implies that source of information comes from saved data.
         # So there must be a model saving function.
-        if len(itemRatingLut) != 0:
+
+        # Description: we assume that the user list is obtained by the union of key of all luts given.
+        # That implies the provided Rating/RD/Volatility don't have to be of same length: the unfilled items will be given default value.
+        player = set(itemRatingLut.keys())
+        player.update(itemRDLut.keys())
+        player.update(itemVolatilityLut.keys())
+        if len(player) != 0:
             # derive itemlut, indexlut and itemnum from itmScoreLut to setup self.data
-            itemnum = len(itemRatingLut)
+            itemnum = len(player)
             itemlut = dict() # from item to index
             indexlut = [] # from index to item
-            for i, itm in enumerate(itemRatingLut.items()):
-                k, v = itm
-                itemlut[i] = k
-                indexlut.append(k)
-                self.indexScoreLut.append(v)
+            miu = []
+            phi = []
+            sigma = []
+            for i, itm in enumerate(player):
+                itemlut[itm] = i
+                indexlut.append(itm)
+                miu.append((itemRatingLut.get(itm, self.baseline) - self.baseline) / self.factor)
+                phi.append(itemRDLut.get(itm, self.rd) / self.factor)
+                sigma.append(itemVolatilityLut.get(itm, self.votality))
             self.data.setup(itemlut, indexlut, itemnum)
-        # Then setup self.miu, phi and sigma
-        self.miu = []*itemnum
-        self.phi = []*itemnum
-        self.sigma = []*itemnum
-        for itm in itemRatingLut.items():
-            k, rating = itm
-            i = itemlut[k]
-            self.miu[i] = rating
-            self.phi[i] = itemPhiLut[k]
-            self.sigma[i] = itemSigmaLut[k]
+            # Then setup self.miu, phi and sigma
+            self.miu = miu
+            self.phi = phi
+            self.sigma = sigma
+        elif self.data.itemnum == 0:
+            self.miu = []
+            self.phi = []
+            self.sigma = []
 
     def update_single_batch(self, dataFrame):
         # check time info
@@ -305,20 +328,18 @@ class GlickoRanker(TimeSeriesRanker):
         if self.data.itemnum > len(self.miu) :
             self.miu = self.miu[:] + [0] * (self.data.itemnum - len(self.miu))
             self.phi = self.phi[:] + [self.rd / self.factor] * (self.data.itemnum - len(self.phi))
-            self.sigma = self.sigma[:] + [self.tau] * (self.data.itemnum - len(self.sigma))
+            self.sigma = self.sigma[:] + [self.votality] * (self.data.itemnum - len(self.sigma))
         
         mtx = pd.DataFrame(data={
             'host': pd.concat([dataFrame.host, dataFrame.visit]),
             'visit': pd.concat([dataFrame.visit, dataFrame.host]),
             'hscore': pd.concat([dataFrame.hscore, dataFrame.vscore]),
             'vscore': pd.concat([dataFrame.vscore, dataFrame.hscore]),
-            'weight': pd.concat([dataFrame.weight, dataFrame.weight]),
-            'time': pd.concat([dataFrame.time, dataFrame.time])
-        }, columns = ['host', 'visit', 'hscore', 'vscore', 'weight', 'time']).reset_index(drop=True).sort_values(by=['time', 'host'])
+            'time': pd.concat([dataFrame.time, dataFrame.time]),
+            'hostavantage': pd.concat([dataFrame.hostavantage, -dataFrame.hostavantage])
+        }, columns = ['host', 'visit', 'hscore', 'vscore', 'time', 'hostavantage']).reset_index(drop=True).sort_values(by=['time', 'host'])
 
         gx = dict()
-        ex = dict()
-        vx = dict()
         players = set(mtx.host)
         for host in players:
             hidx = self.data.itemlut[host]
@@ -329,11 +350,14 @@ class GlickoRanker(TimeSeriesRanker):
             vt = []
             dt = []
             for rec in results.itertuples(index=False):
+                ha = 0 if rec.hostavantage<0 else rec.hostavantage
+                va = 0 if rec.hostavantage>0 else -rec.hostavantage
                 vidx = self.data.itemlut[rec.visit]
+
                 s = 0.5 if abs(rec.hscore - rec.vscore) <= drawMargin else (0 if rec.hscore < rec.vscore else 1)
-                ex[(hidx, vidx)] = E(self.miu[hidx], self.miu[vidx], self.phi[vidx])
-                vt.append(gx[vidx]**2 * ex[(hidx, vidx)] * (1 - ex[(hidx, vidx)]))
-                dt.append(gx[vidx] * (s - ex[(hidx, vidx)]))
+                ex = E(self.miu[hidx] + ha, self.miu[vidx] + va, self.phi[vidx])
+                vt.append(gx[vidx]**2 * ex * (1 - ex))
+                dt.append(gx[vidx] * (s - ex))
             v = 1/sum(vt)
             delta = v*sum(dt)
             sigma_ = volatility_iter(delta**2, self.phi[hidx]**2, self.sigma[hidx], self.votality)
