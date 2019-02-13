@@ -1,6 +1,7 @@
 from rankit.Ranker import EloRanker, TrueSkillRanker, GlickoRanker
 from rankit.Table import Table
 import pandas as pd
+import numpy as np
 from numpy.testing import assert_array_equal, assert_array_almost_equal
 from nose.tools import assert_raises, assert_true, assert_equal, assert_false, assert_almost_equal
 
@@ -102,3 +103,29 @@ def glicko_test():
     assert_almost_equal(gRanker.miu[idx] * gRanker.factor + gRanker.baseline, 1464.06, places=1)
     assert_almost_equal(gRanker.phi[idx] * gRanker.factor, 151.52, places=1)
     assert_almost_equal(gRanker.sigma[idx], 0.05999, places=4)
+
+# illustrating cases from https://trueskill.org/
+def trueskill_test():
+    tsRanker = TrueSkillRanker(baseline=25, rd=25/3)
+    df = pd.DataFrame({
+        'host': ['Alice'],
+        'visit': ['Bob'],
+        'hscore': [1],
+        'vscore': [1]
+    }, columns=['host', 'visit', 'hscore', 'vscore'])
+    t = Table(df, col=['host', 'visit', 'hscore', 'vscore'])
+    tsRanker.update(t)
+    assert_array_almost_equal(np.array([tsRanker.rd * j**(1/2) for j in tsRanker.indexSigmaSqrLut]), np.array([6.458, 6.458]), decimal=3)
+
+def trueskill_another_test():
+    tsRanker = TrueSkillRanker(baseline=25, rd=25/3)
+    df = pd.DataFrame({
+        'host': ['Alice'],
+        'visit': ['Bob'],
+        'hscore': [1],
+        'vscore': [0]
+    }, columns=['host', 'visit', 'hscore', 'vscore'])
+    t = Table(df, col=['host', 'visit', 'hscore', 'vscore'])
+    tsRanker.update(t)
+    assert_array_almost_equal(np.array([tsRanker.rd * (i - 3) + tsRanker.baseline for i in tsRanker.indexMiuLut]), np.array([29.396, 20.604]), decimal=3)
+    assert_array_almost_equal(np.array([tsRanker.rd * j**(1/2) for j in tsRanker.indexSigmaSqrLut]), np.array([7.171, 7.171]), decimal=3)

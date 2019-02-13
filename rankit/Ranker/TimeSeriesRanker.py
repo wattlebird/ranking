@@ -9,6 +9,7 @@ import warnings
 
 pdf = norm.pdf
 cdf = norm.cdf
+ppf = norm.ppf
 PI = math.pi
 
 class TimeSeriesRanker(object):
@@ -111,18 +112,33 @@ class EloRanker(TimeSeriesRanker):
         return rtn.sort_values(by=['rating', 'name'], ascending=False).reset_index(drop=True)
 
 class TrueSkillRanker(TimeSeriesRanker):
-    def __init__(self, baseline=1500, rd=500, drawMargin=0.01, beta=1/2):
+    def __init__(self, baseline=1500, rd=500, drawProbability=0.1, drawMargin=0, beta=1/2):
         self.miu = baseline / rd
         self.sigma = 1
         self.baseline = baseline
         self.rd = rd
         self.beta = beta
-        self.drawMargin = drawMargin if drawMargin != 0 else 0.01
-        if drawMargin == 0:
-            warnings.warn("drawMargin shouldn't be set to 0. 0.01 is set alternatively.")
+        self.drawMargin = drawMargin
+        self.drawProbability = drawProbability
         self.data = Table()
         self.indexMiuLut = []
         self.indexSigmaSqrLut = []
+
+    @property
+    def drawProbability(self):
+        return self._draw_probability
+
+    @drawProbability.setter
+    def drawProbability(self, p):
+        if p <= 0:
+            warnings.warn("Probability of draw must be set above 0. Set to default value 0.1.")
+            self._draw_probability = 0.1
+        else:
+            self._draw_probability = p
+
+    @property
+    def realDrawMargin(self):
+        return math.sqrt(2) * self.beta * ppf((1+self.drawProbability)/2)
 
     @staticmethod
     def v(t, a):
@@ -138,7 +154,7 @@ class TrueSkillRanker(TimeSeriesRanker):
 
     @staticmethod
     def wt(t, a):
-        return TrueSkillRanker.vt(t, a) ** 2 + ((a-t)*pdf(a-t)-(a+t)*pdf(a+t))/(cdf(a - t) - cdf(- a - t))
+        return TrueSkillRanker.vt(t, a) ** 2 + ((a-t)*pdf(a-t)+(a+t)*pdf(a+t))/(cdf(a - t) - cdf(- a - t))
 
     def setup(self, itemRatingLut = dict(), itemRDLut = dict()):
         player = set(itemRatingLut.keys())
@@ -164,7 +180,7 @@ class TrueSkillRanker(TimeSeriesRanker):
             self.indexSigmaSqrLut = []
     
     def update_single(self, host, visit, hscore, vscore, time="", hostavantage=0.0):
-        v, w, vt, wt, beta, drawMargin = TrueSkillRanker.v, TrueSkillRanker.w, TrueSkillRanker.vt, TrueSkillRanker.wt, self.beta, self.drawMargin
+        v, w, vt, wt, beta, drawMargin, realDrawMargin = TrueSkillRanker.v, TrueSkillRanker.w, TrueSkillRanker.vt, TrueSkillRanker.wt, self.beta, self.drawMargin, self.realDrawMargin
         self.data.update_single(host, visit, hscore, vscore, time=time)
         ih = self.data.itemlut[host]
         iv = self.data.itemlut[visit]
@@ -179,21 +195,21 @@ class TrueSkillRanker(TimeSeriesRanker):
         sv = self.indexSigmaSqrLut[iv]
         cs = sh + sv + 2*beta*beta
         if abs(hscore - vscore) <= drawMargin:
-            self.indexMiuLut[ih] += sh*vt(0, drawMargin/cs**(1/2))/cs**(1/2)
-            self.indexMiuLut[iv] += sv*vt(0, drawMargin/cs**(1/2))/cs**(1/2)
-            self.indexSigmaSqrLut[ih] *= (1 - sh/cs*wt(0, drawMargin/cs**(1/2)))
-            self.indexSigmaSqrLut[iv] *= (1 - sv/cs*wt(0, drawMargin/cs**(1/2)))
+            self.indexMiuLut[ih] += sh*vt(0, realDrawMargin/cs**(1/2))/cs**(1/2)
+            self.indexMiuLut[iv] += sv*vt(0, realDrawMargin/cs**(1/2))/cs**(1/2)
+            self.indexSigmaSqrLut[ih] *= (1 - sh/cs*wt(0, realDrawMargin/cs**(1/2)))
+            self.indexSigmaSqrLut[iv] *= (1 - sv/cs*wt(0, realDrawMargin/cs**(1/2)))
         else:
             b = 1 if hscore > vscore + drawMargin else -1
-            self.indexMiuLut[ih] += b * sh * v(b*(mh - mv)/cs**(1/2), drawMargin/cs**(1/2)) /cs**(1/2)
-            self.indexMiuLut[iv] += b * sv * v(b*(mv - mh)/cs**(1/2), drawMargin/cs**(1/2)) /cs**(1/2)
-            self.indexSigmaSqrLut[ih] *= (1 - sh * w(b*(mh - mv)/cs**(1/2), drawMargin/cs**(1/2)))
-            self.indexSigmaSqrLut[iv] *= (1 - sv * w(b*(mv - mh)/cs**(1/2), drawMargin/cs**(1/2)))
+            self.indexMiuLut[ih] += b * sh * v(b*(mh - mv)/cs**(1/2), realDrawMargin/cs**(1/2)) /cs**(1/2)
+            self.indexMiuLut[iv] -= b * sv * v(b*(mv - mh)/cs**(1/2), realDrawMargin/cs**(1/2)) /cs**(1/2)
+            self.indexSigmaSqrLut[ih] *= (1 - sh * w(b*(mh - mv)/cs**(1/2), realDrawMargin/cs**(1/2)) /cs)
+            self.indexSigmaSqrLut[iv] *= (1 - sv * w(b*(mv - mh)/cs**(1/2), realDrawMargin/cs**(1/2)) /cs)
 
         return (self.rd * (self.indexMiuLut[ih] - 1.96 * self.indexSigmaSqrLut[ih]**(1/2)) + (self.baseline - 3 * self.rd), self.rd * (self.indexMiuLut[iv] - 1.96 * self.indexSigmaSqrLut[iv]**(1/2)) + (self.baseline - 3 * self.rd) )
         
     def update(self, table):
-        v, w, vt, wt, beta, drawMargin = TrueSkillRanker.v, TrueSkillRanker.w, TrueSkillRanker.vt, TrueSkillRanker.wt, self.beta, self.drawMargin
+        v, w, vt, wt, beta, drawMargin, realDrawMargin = TrueSkillRanker.v, TrueSkillRanker.w, TrueSkillRanker.vt, TrueSkillRanker.wt, self.beta, self.drawMargin, self.realDrawMargin
         self.data.update(table)
         if self.data.itemnum > len(self.indexMiuLut) :
             self.indexMiuLut = self.indexMiuLut[:] + [self.miu] * (self.data.itemnum - len(self.indexMiuLut))
@@ -209,16 +225,16 @@ class TrueSkillRanker(TimeSeriesRanker):
             sv = self.indexSigmaSqrLut[iv]
             cs = sh + sv + 2*beta*beta
             if abs(hscore - vscore) <= drawMargin:
-                self.indexMiuLut[ih] += sh*vt(0, drawMargin/cs**(1/2))/cs**(1/2)
-                self.indexMiuLut[iv] += sv*vt(0, drawMargin/cs**(1/2))/cs**(1/2)
-                self.indexSigmaSqrLut[ih] *= (1 - sh/cs*wt(0, drawMargin/cs**(1/2)))
-                self.indexSigmaSqrLut[iv] *= (1 - sv/cs*wt(0, drawMargin/cs**(1/2)))
+                self.indexMiuLut[ih] += sh*vt(0, realDrawMargin/cs**(1/2))/cs**(1/2)
+                self.indexMiuLut[iv] += sv*vt(0, realDrawMargin/cs**(1/2))/cs**(1/2)
+                self.indexSigmaSqrLut[ih] *= (1 - sh/cs*wt(0, realDrawMargin/cs**(1/2)))
+                self.indexSigmaSqrLut[iv] *= (1 - sv/cs*wt(0, realDrawMargin/cs**(1/2)))
             else:
                 b = 1 if hscore > vscore + drawMargin else -1
-                self.indexMiuLut[ih] += b * sh * v(b*(mh - mv)/cs**(1/2), drawMargin/cs**(1/2)) /cs**(1/2)
-                self.indexMiuLut[iv] += b * sv * v(b*(mv - mh)/cs**(1/2), drawMargin/cs**(1/2)) /cs**(1/2)
-                self.indexSigmaSqrLut[ih] *= (1 - sh * w(b*(mh - mv)/cs**(1/2), drawMargin/cs**(1/2)))
-                self.indexSigmaSqrLut[iv] *= (1 - sv * w(b*(mv - mh)/cs**(1/2), drawMargin/cs**(1/2)))
+                self.indexMiuLut[ih] += b * sh * v(b*(mh - mv)/cs**(1/2), realDrawMargin/cs**(1/2)) /cs**(1/2)
+                self.indexMiuLut[iv] -= b * sv * v(b*(mv - mh)/cs**(1/2), realDrawMargin/cs**(1/2)) /cs**(1/2)
+                self.indexSigmaSqrLut[ih] *= (1 - sh * w(b*(mh - mv)/cs**(1/2), realDrawMargin/cs**(1/2)) /cs)
+                self.indexSigmaSqrLut[iv] *= (1 - sv * w(b*(mv - mh)/cs**(1/2), realDrawMargin/cs**(1/2)) /cs)
     
     def prob_win(self, host, visit):
         beta = self.beta
