@@ -32,6 +32,17 @@ class TimeSeriesRanker(object):
         raise NotImplementedError("TimeSeriesRanker is a abstract class.")
 
 class EloRanker(TimeSeriesRanker):
+    """
+    Elo Ranker is a traditional ranking algorithm adjusting player's rating by a series of gaming results.
+    All players starts from 1500 first, and after each paired contest, two player's ranking will be updated in such a way that the sum of their ranking does not change.
+    
+    Parameters
+    ----------
+    K: amount of weight to be applied to each update.
+    xi: somewhat related to "performance variance", the larger value assumes a more violent game performance and the ranking change will be more conservative.
+    baseline: the initial ranking of each player.
+    drawMargin: if the score difference is smaller or equal than drawMargin, this turn of game will be considered as draw. A draw will also effect player's rating.
+    """
     def __init__(self, K=10, xi=400, baseline=1500, drawMargin=0):
         self.K = K
         self.xi = xi
@@ -41,6 +52,14 @@ class EloRanker(TimeSeriesRanker):
         self.indexScoreLut = []
         
     def setup(self, itemRatingLut = dict()):
+        """
+        Setup the initial state of EloRanker with existing Rating.
+        This function is used in where prior information is given about competitiors, and one wants to continue ranking on that.
+        
+        Parameters
+        ----------
+        itemRatingLut: a dictionary working as player's name to rating look up table.
+        """
         if len(itemRatingLut) != 0:
             # derive itemlut, indexlut and itemnum from itmScoreLut to setup self.data
             itemnum = len(itemRatingLut)
@@ -57,6 +76,22 @@ class EloRanker(TimeSeriesRanker):
             self.indexScoreLut = []
         
     def update_single(self, host, visit, hscore, vscore, time="", hostavantage=0.0):
+        """
+        Update rating based on a single record.
+        
+        Parameters
+        ----------
+        host: name of host player
+        visit: name of visit player
+        hscore: score of host player
+        vscore: score of visit player
+        time: timestamp of the game. Should be numerical value. Default set to empty string.
+        hostavantage: should the host player has some advantage over visit player, such as gaming field is located at host player's field, this value should be set to positive. If visit player has that advantage, this value should be set to negative. Default set to 0. 
+
+        Return
+        ------
+        Tuple of (newHostRating, newVisitRating)
+        """
         self.data.update_single(host, visit, hscore, vscore, time=time, hostavantage=hostavantage)
         ih = self.data.itemlut[host]
         iv = self.data.itemlut[visit]
@@ -79,6 +114,13 @@ class EloRanker(TimeSeriesRanker):
         return (self.indexScoreLut[ih], self.indexScoreLut[iv])
 
     def update(self, table):
+        """
+        Update rating based on a table of record.
+        
+        Parameters
+        ----------
+        table: a Table object, consisting of new records that has never been previously feed to the ranker.
+        """
         self.data.update(table)
         self.indexScoreLut = self.indexScoreLut[:] + [self.baseline] * (self.data.itemnum - len(self.indexScoreLut))
 
@@ -97,6 +139,18 @@ class EloRanker(TimeSeriesRanker):
             self.indexScoreLut[iv] -= delta
 
     def prob_win(self, host, visit):
+        """
+        Probability of host player wins over visit player.
+
+        Parameters
+        ----------
+        host: name of host player
+        visit: name of visit player
+
+        Return
+        ------
+        float: probability of winning.
+        """
         ih = self.data.itemlut[host]
         iv = self.data.itemlut[visit]
         rh = self.indexScoreLut[ih]
@@ -104,6 +158,17 @@ class EloRanker(TimeSeriesRanker):
         return 1/(1+10**((rv-rh)/self.xi))
 
     def leaderboard(self, method="min"):
+        """
+        Presenting current leaderboard.
+
+        Parameters
+        ----------
+        method: method to process ranking value when rating is the same. See https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.Series.rank.html for more.
+
+        Return
+        ------
+        pd.DataFrame: with column "name", "rating" and "rank".
+        """
         rtn = pd.DataFrame({
             "name": self.data.indexlut,
             "rating": self.indexScoreLut
@@ -112,12 +177,25 @@ class EloRanker(TimeSeriesRanker):
         return rtn.sort_values(by=['rating', 'name'], ascending=False).reset_index(drop=True)
 
 class TrueSkillRanker(TimeSeriesRanker):
-    def __init__(self, baseline=1500, rd=500, drawProbability=0.1, drawMargin=0, beta=1/2):
+    """
+    Pairwise TrueSkill Ranker is subset of real TrueSkill ranker. See more: https://www.microsoft.com/en-us/research/project/trueskill-ranking-system/
+    Unlike original TrueSkill ranker, this ranker only process pairwise gaming records.
+
+    Parameters
+    ----------
+    baseline: the initial ranking value of new players. Default set to 1500.
+    rd: rating deviation, the possible deviation of a player. Default set to 500.
+    performanceRd: the possible deviation of each game. Default set to 250.
+    drawProbability: the probability of draw. Default set to 0.1 and cannot be set to 0.
+    darwMargin: if the score difference is smaller or equal than drawMargin, this turn of game will be considered as draw.
+                Even if drawMargin is set to 0, drawProbability should never be set to 0.
+    """
+    def __init__(self, baseline=1500, rd=500, performanceRd=250, drawProbability=0.1, drawMargin=0):
         self.miu = baseline / rd
         self.sigma = 1
         self.baseline = baseline
         self.rd = rd
-        self.beta = beta
+        self.performanceRd = performanceRd
         self.drawMargin = drawMargin
         self.drawProbability = drawProbability
         self.data = Table()
@@ -140,6 +218,10 @@ class TrueSkillRanker(TimeSeriesRanker):
     def realDrawMargin(self):
         return math.sqrt(2) * self.beta * ppf((1+self.drawProbability)/2)
 
+    @property
+    def beta(self):
+        return self.performanceRd/self.rd
+
     @staticmethod
     def v(t, a):
         return pdf(t-a)/cdf(t-a)
@@ -157,6 +239,15 @@ class TrueSkillRanker(TimeSeriesRanker):
         return TrueSkillRanker.vt(t, a) ** 2 + ((a-t)*pdf(a-t)+(a+t)*pdf(a+t))/(cdf(a - t) - cdf(- a - t))
 
     def setup(self, itemRatingLut = dict(), itemRDLut = dict()):
+        """
+        Setup the initial state of TrueSkill with existing rating and player deviation.
+        This function is used in where prior information is given about competitiors, and one wants to continue ranking on that.
+        
+        Parameters
+        ----------
+        itemRatingLut: a dictionary working as player's name to rating look up table.
+        itemRDLut: a dictionary working as player's name to deviation look up table.
+        """
         player = set(itemRatingLut.keys())
         player.update(itemRDLut.keys())
         if len(player) != 0:
@@ -180,6 +271,22 @@ class TrueSkillRanker(TimeSeriesRanker):
             self.indexSigmaSqrLut = []
     
     def update_single(self, host, visit, hscore, vscore, time="", hostavantage=0.0):
+        """
+        Update rating based on a single record.
+        
+        Parameters
+        ----------
+        host: name of host player
+        visit: name of visit player
+        hscore: score of host player
+        vscore: score of visit player
+        time: timestamp of the game. Should be numerical value. Default set to empty string.
+        hostavantage: should the host player has some advantage over visit player, such as gaming field is located at host player's field, this value should be set to positive. If visit player has that advantage, this value should be set to negative. Default set to 0. 
+
+        Return
+        ------
+        Tuple of (newHostRating, newVisitRating)
+        """
         v, w, vt, wt, beta, drawMargin, realDrawMargin = TrueSkillRanker.v, TrueSkillRanker.w, TrueSkillRanker.vt, TrueSkillRanker.wt, self.beta, self.drawMargin, self.realDrawMargin
         self.data.update_single(host, visit, hscore, vscore, time=time)
         ih = self.data.itemlut[host]
@@ -209,6 +316,13 @@ class TrueSkillRanker(TimeSeriesRanker):
         return (self.rd * (self.indexMiuLut[ih] - 1.96 * self.indexSigmaSqrLut[ih]**(1/2)) + (self.baseline - 3 * self.rd), self.rd * (self.indexMiuLut[iv] - 1.96 * self.indexSigmaSqrLut[iv]**(1/2)) + (self.baseline - 3 * self.rd) )
         
     def update(self, table):
+        """
+        Update rating based on a table of record.
+        
+        Parameters
+        ----------
+        table: a Table object, consisting of new records that has never been previously feed to the ranker.
+        """
         v, w, vt, wt, beta, drawMargin, realDrawMargin = TrueSkillRanker.v, TrueSkillRanker.w, TrueSkillRanker.vt, TrueSkillRanker.wt, self.beta, self.drawMargin, self.realDrawMargin
         self.data.update(table)
         if self.data.itemnum > len(self.indexMiuLut) :
@@ -237,6 +351,18 @@ class TrueSkillRanker(TimeSeriesRanker):
                 self.indexSigmaSqrLut[iv] *= (1 - sv * w(b*(mv - mh)/cs**(1/2), realDrawMargin/cs**(1/2)) /cs)
     
     def prob_win(self, host, visit):
+        """
+        Probability of host player wins over visit player.
+
+        Parameters
+        ----------
+        host: name of host player
+        visit: name of visit player
+
+        Return
+        ------
+        float: probability of winning.
+        """
         beta = self.beta
         ih = self.data.itemlut[host]
         iv = self.data.itemlut[visit]
@@ -248,6 +374,17 @@ class TrueSkillRanker(TimeSeriesRanker):
         return cdf((mh-mv)/cs**(1/2))
 
     def leaderboard(self, method="min"):
+        """
+        Presenting current leaderboard.
+
+        Parameters
+        ----------
+        method: method to process ranking value when rating is the same. See https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.Series.rank.html for more.
+
+        Return
+        ------
+        pd.DataFrame: with column "name", "rating" and "rank".
+        """
         rtn = pd.DataFrame({
             "name": self.data.indexlut,
             "rating": [self.rd * (i - 1.96*j**(1/2) - 3) + self.baseline for (i,j) in zip(self.indexMiuLut, self.indexSigmaSqrLut)]
@@ -256,6 +393,21 @@ class TrueSkillRanker(TimeSeriesRanker):
         return rtn.sort_values(by=['rating', 'name'], ascending=False).reset_index(drop=True)
 
 class GlickoRanker(TimeSeriesRanker):
+    """
+    Glicko 2 ranker. See more: http://www.glicko.net/glicko.html
+    Notice: different from previous rankers, Glicko algorithm involves a concept called "rating period". The update procedure is based on each rating period.
+    In order to specify rating period, one have to state clearly the timestamp in record. Records in the same timestamp will be updated as a batch.
+    If no timestamp is specified, the update algorithm will update the whole records in one batch.
+
+    Parameters
+    ----------
+    baseline: the initial ranking value of new players. Default set to 1500.
+    rd: rating deviation, the possible deviation of a player. Default set to 350.
+    votality: this parameter is to measure the degree of expected fluctuation in a player's rating. Default set to 0.06.
+    tau: constrains the change of votality over time. The more enormous changes involved in your game, the lower tau should be. Default set to 0.5.
+    epsilon: parameter to control iteration. Default set to 1e-6.
+    darwMargin: if the score difference is smaller or equal than drawMargin, this turn of game will be considered as draw. Default set to 0.
+    """
     def __init__(self, baseline = 1500, rd = 350, votality = 0.06, tau = 0.5, epsilon = 0.000001, drawMargin = 0):
         self.baseline = baseline
         self.rd = rd
@@ -305,6 +457,17 @@ class GlickoRanker(TimeSeriesRanker):
         return math.exp(A/2)
 
     def setup(self, itemRatingLut = dict(), itemRDLut = dict(), itemVolatilityLut = dict()):
+        """
+        Setup the initial state of Glick 2 with existing rating and player deviation.
+        This function is used in where prior information is given about competitiors, and one wants to continue ranking on that.
+        Notice: one does not have to provide full look up table on every player: if a player exist in one look up table but doesn't in another one, corresponding parameter will be set to default value.
+        
+        Parameters
+        ----------
+        itemRatingLut: a dictionary working as player's name to rating look up table.
+        itemRDLut: a dictionary working as player's name to deviation look up table.
+        itemVolatilityLut: a dictionary working as player's name to volatility look up table.
+        """
         # TODO: By using this function, users have to know exactly the existing user rating, RD and volatility, which implies that source of information comes from saved data.
         # So there must be a model saving function.
 
@@ -388,6 +551,13 @@ class GlickoRanker(TimeSeriesRanker):
                 self.phi[idx] = math.sqrt(self.phi[idx]**2 + self.sigma[idx]**2)
 
     def update(self, table):
+        """
+        Update rating based on a table of record.
+        
+        Parameters
+        ----------
+        table: a Table object, consisting of new records that has never been previously feed to the ranker.
+        """
         # Check time info
         if self.data.table.shape[0] > 0 and self.data.table.time.iloc[-1] is not None:
             if table.table.time.iloc[0] is None:
@@ -403,12 +573,35 @@ class GlickoRanker(TimeSeriesRanker):
         raise Exception("Update single is not allowed in Glicko 2 ranking algorithm. You must specify the rating period explicitly in time column wrapped in Table.")
 
     def prob_win(self, host, visit):
+        """
+        Probability of host player wins over visit player.
+
+        Parameters
+        ----------
+        host: name of host player
+        visit: name of visit player
+
+        Return
+        ------
+        float: probability of winning.
+        """
         E = GlickoRanker.E
         hidx = self.data.itemlut[host]
         vidx = self.data.itemlut[visit]
         return E(self.miu[hidx], self.miu[vidx], math.sqrt(self.phi[hidx]**2 + self.phi[vidx]**2))
 
     def leaderboard(self, method="min"):
+        """
+        Presenting current leaderboard.
+
+        Parameters
+        ----------
+        method: method to process ranking value when rating is the same. See https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.Series.rank.html for more.
+
+        Return
+        ------
+        pd.DataFrame: with column "name", "rating" and "rank".
+        """
         rtn = pd.DataFrame({
             "name": self.data.indexlut,
             "rating": [self.factor * (i - 1.96*j) + self.baseline for (i,j) in zip(self.miu, self.phi)]

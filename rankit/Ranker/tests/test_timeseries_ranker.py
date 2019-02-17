@@ -106,7 +106,7 @@ def glicko_test():
 
 # illustrating cases from https://trueskill.org/
 def trueskill_test():
-    tsRanker = TrueSkillRanker(baseline=25, rd=25/3)
+    tsRanker = TrueSkillRanker(baseline=25, rd=25/3.0, performanceRd=25/6.0)
     df = pd.DataFrame({
         'host': ['Alice'],
         'visit': ['Bob'],
@@ -118,7 +118,7 @@ def trueskill_test():
     assert_array_almost_equal(np.array([tsRanker.rd * j**(1/2) for j in tsRanker.indexSigmaSqrLut]), np.array([6.458, 6.458]), decimal=3)
 
 def trueskill_another_test():
-    tsRanker = TrueSkillRanker(baseline=25, rd=25/3)
+    tsRanker = TrueSkillRanker(baseline=25, rd=25/3.0, performanceRd=25/6.0)
     df = pd.DataFrame({
         'host': ['Alice'],
         'visit': ['Bob'],

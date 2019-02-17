@@ -28,8 +28,8 @@ class Table(object):
         Game result of paired players.
     col: list of index or column names
         Index or column names should indicating ['player1', 'player2', 'score1', 'score2']
-    weightcol: index or name of column indicating weight
-    timecol: index or name of column indicating time. Compulsory column for Elo Rank.
+    weightcol: index or name of column indicating weight. Weight does not take effect in TimeSeries Ranker.
+    timecol: index or name of column indicating time.
     hostavantagecol: index or name of column indicating host advantage
 
     Returns
