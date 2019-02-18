@@ -115,7 +115,7 @@ def trueskill_test():
     }, columns=['host', 'visit', 'hscore', 'vscore'])
     t = Table(df, col=['host', 'visit', 'hscore', 'vscore'])
     tsRanker.update(t)
-    assert_array_almost_equal(np.array([tsRanker.rd * j**(1/2) for j in tsRanker.indexSigmaSqrLut]), np.array([6.458, 6.458]), decimal=3)
+    assert_array_almost_equal(np.array([tsRanker.rd * j**(1/2.0) for j in tsRanker.indexSigmaSqrLut]), np.array([6.458, 6.458]), decimal=3)
 
 def trueskill_another_test():
     tsRanker = TrueSkillRanker(baseline=25, rd=25/3.0, performanceRd=25/6.0)
@@ -127,5 +127,9 @@ def trueskill_another_test():
     }, columns=['host', 'visit', 'hscore', 'vscore'])
     t = Table(df, col=['host', 'visit', 'hscore', 'vscore'])
     tsRanker.update(t)
-    assert_array_almost_equal(np.array([tsRanker.rd * (i - 3) + tsRanker.baseline for i in tsRanker.indexMiuLut]), np.array([29.396, 20.604]), decimal=3)
-    assert_array_almost_equal(np.array([tsRanker.rd * j**(1/2) for j in tsRanker.indexSigmaSqrLut]), np.array([7.171, 7.171]), decimal=3)
+    idx = tsRanker.data.itemlut['Alice']
+    assert_almost_equal(tsRanker.rd * (tsRanker.indexMiuLut[idx] - 3) + tsRanker.baseline, 29.396, places=3)
+    assert_almost_equal(tsRanker.rd * tsRanker.indexSigmaSqrLut[idx]**(1/2.0), 7.171, places=3)
+    idx = tsRanker.data.itemlut['Bob']
+    assert_almost_equal(tsRanker.rd * (tsRanker.indexMiuLut[idx] - 3) + tsRanker.baseline, 20.604, places=3)
+    assert_almost_equal(tsRanker.rd * tsRanker.indexSigmaSqrLut[idx]**(1/2.0), 7.171, places=3)
