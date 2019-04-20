@@ -409,8 +409,8 @@ The Offence-defence rank tries to assign an offence rating and a defence rating 
     offence rating.
 
 ##### Parameters
-**method:** {'summary', 'offence', 'defence'}, default 'summary'. The rating to be returned. 'summary' is offence/defence.
-**epsilon:** [0, +Inf) default 1e-4. The small value that forces a convergence.
+**method:** {'summary', 'offence', 'defence'}, default 'summary'. The rating to be returned. 'summary' is offence/defence.  
+**epsilon:** [0, +Inf) default 1e-4. The small value that forces a convergence.  
 **threshold:** (0, +Inf), default 1e-4. The threshold that controls when the algorithm will converge.
 
 ##### Method
@@ -466,10 +466,10 @@ rankit.Ranker.TrueSkillRanker(baseline=1500, rd=500, performanceRd=250, drawProb
 Pairwise TrueSkill Ranker is subset of real TrueSkill ranker. See more: https://www.microsoft.com/en-us/research/project/trueskill-ranking-system/ Unlike original TrueSkill ranker, this ranker only process pairwise gaming records.
 
 ##### Parameters
-**baseline:** the initial ranking value of new players. Default set to 1500.
-**rd:** rating deviation, the possible deviation of a player. Default set to 500.
-**performanceRd:** the possible deviation of each game. Default set to 250.
-**drawProbability:** the probability of draw. Default set to 0.1 and cannot be set to 0.
+**baseline:** the initial ranking value of new players. Default set to 1500.  
+**rd:** rating deviation, the possible deviation of a player. Default set to 500.  
+**performanceRd:** the possible deviation of each game. Default set to 250.  
+**drawProbability:** the probability of draw. Default set to 0.1 and cannot be set to 0.  
 **darwMargin:** if the score difference is smaller or equal than drawMargin, this turn of game will be considered as draw. Even if drawMargin is set to 0, drawProbability should never be set to 0.
 
 ##### Method
@@ -491,11 +491,11 @@ Glicko 2 ranker. See more: http://www.glicko.net/glicko.html
 **Notice:** different from previous rankers, Glicko algorithm involves a concept called "rating period". The update procedure is based on each rating period. In order to specify rating period, one have to state clearly the timestamp in record. Records in the same timestamp will be updated as a batch. If no timestamp is specified, the update algorithm will update the whole records in one batch.
 
 ##### Parameters
-**baseline:** the initial ranking value of new players. Default set to 1500.
-**rd:** rating deviation, the possible deviation of a player. Default set to 350.
-**votality:** this parameter is to measure the degree of expected fluctuation in a player's rating. Default set to 0.06.
-**tau:** constrains the change of votality over time. The more enormous changes involved in your game, the lower tau should be. Default set to 0.5.
-**epsilon:** parameter to control iteration. Default set to 1e-6.
+**baseline:** the initial ranking value of new players. Default set to 1500.  
+**rd:** rating deviation, the possible deviation of a player. Default set to 350.  
+**votality:** this parameter is to measure the degree of expected fluctuation in a player's rating. Default set to 0.06.  
+**tau:** constrains the change of votality over time. The more enormous changes involved in your game, the lower tau should be. Default set to 0.5.  
+**epsilon:** parameter to control iteration. Default set to 1e-6.  
 **darwMargin:** if the score difference is smaller or equal than drawMargin, this turn of game will be considered as draw. Default set to 0.
 
 ##### Method
