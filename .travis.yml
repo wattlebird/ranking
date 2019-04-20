@@ -1,30 +1,33 @@
 language: python
 python:
-    - "2.7"
-    - "3.5"
-    - "3.6"
+- '2.7'
+- '3.5'
+- '3.6'
 before_install:
-    - if [[ "$TRAVIS_PYTHON_VERSION" == "2.7" ]]; then
-        wget https://repo.continuum.io/miniconda/Miniconda2-latest-Linux-x86_64.sh -O miniconda.sh;
-      else
-        wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh;
-      fi
-    - chmod +x miniconda.sh
-    - ./miniconda.sh -b -p $HOME/miniconda
-    - export PATH="$HOME/miniconda/bin:$PATH"
-    - hash -r
-    - conda config --set always_yes yes --set changeps1 no
-    - conda update -q conda
-    - conda info -a
-    # The next couple lines fix a crash with multiprocessing on Travis and are not specific to using Miniconda
-    - sudo rm -rf /dev/shm
-    - sudo ln -s /run/shm /dev/shm
-# Install packages
+- if [[ "$TRAVIS_PYTHON_VERSION" == "2.7" ]]; then wget https://repo.continuum.io/miniconda/Miniconda2-latest-Linux-x86_64.sh
+  -O miniconda.sh; else wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh
+  -O miniconda.sh; fi
+- chmod +x miniconda.sh
+- "./miniconda.sh -b -p $HOME/miniconda"
+- export PATH="$HOME/miniconda/bin:$PATH"
+- hash -r
+- conda config --set always_yes yes --set changeps1 no
+- conda update -q conda
+- conda info -a
+- sudo rm -rf /dev/shm
+- sudo ln -s /run/shm /dev/shm
 install:
-    - conda create -q -n test-environment python=$TRAVIS_PYTHON_VERSION numpy scipy nose pandas cython
-    - source activate test-environment
-    - python setup.py build
-    - python setup.py install
-
+- conda create -q -n test-environment python=$TRAVIS_PYTHON_VERSION numpy scipy nose
+  pandas cython
+- source activate test-environment
+- python setup.py build
+- python setup.py install
 script:
-    - nosetests
+- nosetests
+deploy:
+  provider: pypi
+  user: "ike"
+  password:
+    secure: TOA8ZXUJHd8aZ0g+t1l5lCak9O/ZFPlDUigE+vULf0I/5oTWWkcZDoj2OLY9g7kG1Dk1Qgs0fCSQW8AIuVgmaZsDacA41DQ3VR5eo8QDDOcYaAd9G6BPt62hofPnubuebBz2rGiN+jqb9EAbCU8xAcBjwaP9YdeK8CM7tDOG7K85lUZPVMzxCu8PeqyVJPHWdli9bG/KYra4iyldXVM8EwTRRYqgwMETUoFPbrgD8hpf1r+h7pDrbCzwPpgU1CKVCyZzM2VSWCsaQOXyky41T95BtGcq+Xn3kQdh1TxODIirx+4Eh48VeVBJ5CbsHEGBn0xd40GYt+m9B/9dJPNpBiSssbCSkomCV1Hr/l6yhdRaK2gWTt3uPfywLV5hayAI908L3XJjy55k11fLsfy6HGNlMlhDAhR7DIr1FH2J31UnqY//X4ij2LyrfeBboOpWA2vobAvmuRmx1G62Fq0S3n/cLE58QiQ0HT1NKKjBsuOVxRKzwxzH7YUERicgKHoV5/2keqWMLXAg+Y/1fRNgPdjLGcKtrDj+kI0t9V1pT3sr9JKuQ5EvXyC+m2rYnZFHOH2Z7maud2InfZDvJWEdUYs+2gNB1Vu3xPsiiBebkMtbLKvs/4rsfhB7GkrJeTliEkA90i97GzbOdeu6dg/VR8KdIXxECAoT05XIpWfICNU=
+  on:
+    tags: true
