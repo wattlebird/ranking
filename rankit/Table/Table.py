@@ -4,8 +4,8 @@ import numpy as np
 
 
 class Record(object):
-    __slots__ = ['host', 'visit', 'hscore', 'vscore', 'indexHost', 'indexVisit', 'weight', 'time', 'hostavantage']
-    def __init__(self, host, visit, hscore, vscore, indexHost, indexVisit, weight=1, time="", hostavantage=0):
+    __slots__ = ['host', 'visit', 'hscore', 'vscore', 'indexHost', 'indexVisit', 'weight', 'time']
+    def __init__(self, host, visit, hscore, vscore, indexHost, indexVisit, weight=1, time=""):
         self.host = host
         self.visit = visit
         self.hscore = hscore
@@ -14,7 +14,6 @@ class Record(object):
         self.indexVisit = indexVisit
         self.weight = weight
         self.time = time
-        self.hostavantage = hostavantage
 
 class Table(object):
     """ A Table object in rankit is equivalent to data. 
@@ -30,16 +29,15 @@ class Table(object):
         Index or column names should indicating ['player1', 'player2', 'score1', 'score2']
     weightcol: index or name of column indicating weight. Weight does not take effect in TimeSeries Ranker.
     timecol: index or name of column indicating time.
-    hostavantagecol: index or name of column indicating host advantage
 
     Returns
     -------
     Table object to be fed to Rankers.
     """
-    # internal table should contain columns [host, visit, hscore, vscore, weight, time, hostavantage, hidx, vidx]
+    # internal table should contain columns [host, visit, hscore, vscore, weight, time, hidx, vidx]
     def __init__(self, data=pd.DataFrame(columns=['host', 'visit', 'hscore', 'vscore', 'weight', 'time']), \
                  col=['host', 'visit', 'hscore', 'vscore'], \
-                 weightcol=None, timecol=None, hostavantagecol=None):
+                 weightcol=None, timecol=None):
         if len(col)!=4:
             raise ValueError("Parameter col must have four values, indicating columns for host, visit, host score and visit score.")
         if (not all(isinstance(i, str) for i in col)) and (not all(isinstance(i, int) for i in col)):
@@ -60,11 +58,6 @@ class Table(object):
             raw_table['time'] = data.iloc[:, timecol] if isinstance(timecol, int) else data.loc[:, timecol]
         else:
             raw_table['time'] = ''
-        
-        if hostavantagecol is not None:
-            raw_table['hostavantage'] = data.iloc[:, hostavantagecol] if isinstance(hostavantagecol, int) else data.loc[:, hostavantagecol]
-        else:
-            raw_table['hostavantage'] = 0.0
 
         itemlut = dict()
         indexlut = []
@@ -89,7 +82,7 @@ class Table(object):
 
         self.table = raw_table
 
-    def update_single(self, host, visit, hscore, vscore, time=None, weight=1.0, hostavantage=0.0):
+    def update_single(self, host, visit, hscore, vscore, time=None, weight=1.0):
         if host not in self.itemlut:
             self.itemlut[host] = len(self.indexlut)
             self.indexlut.append(host)
@@ -100,8 +93,8 @@ class Table(object):
             self.itemnum += 1
         
         self.table.append(
-            pd.DataFrame([[host, visit, hscore, vscore, weight, time, hostavantage, self.itemlut[host], self.itemlut[visit]]],
-              columns=['host', 'visit', 'hscore', 'vscore', 'weight', 'time', 'hostavantage', 'hidx', 'vidx']
+            pd.DataFrame([[host, visit, hscore, vscore, weight, time, self.itemlut[host], self.itemlut[visit]]],
+              columns=['host', 'visit', 'hscore', 'vscore', 'weight', 'time', 'hidx', 'vidx']
             ),
             ignore_index=True
         )
@@ -113,7 +106,7 @@ class Table(object):
 
     def iteritem(self):
         for rec in self.table.itertuples(index=False):
-            yield Record(rec.host, rec.visit, rec.hscore, rec.vscore, rec.hidx, rec.vidx, rec.weight, rec.time, rec.hostavantage)
+            yield Record(rec.host, rec.visit, rec.hscore, rec.vscore, rec.hidx, rec.vidx, rec.weight, rec.time)
 
     def update(self, table):
         # update itemlut, indexlut, itemnum
@@ -134,7 +127,7 @@ class Table(object):
         self.table = pd.concat([self.table, table.table], ignore_index=True)
 
 
-    def update_raw(self, dataFrame, col=['host', 'visit', 'hscore', 'vscore'], weightcol=None, timecol=None, hostavantagecol=None):
+    def update_raw(self, dataFrame, col=['host', 'visit', 'hscore', 'vscore'], weightcol=None, timecol=None):
         # update itemlut, indexlut, itemnum
         p = len(self.indexlut)
         players = pd.concat([dataFrame[col].iloc[:, 0], dataFrame[col].iloc[:, 1]], ignore_index=True).unique()
@@ -149,7 +142,6 @@ class Table(object):
         newTable = dataFrame.loc[:, col]
         newTable['weight'] = 1.0 if weightcol is None else dataFrame.loc[:, weightcol]
         newTable['time'] = "" if timecol is None else dataFrame.loc[:, timecol]
-        newTable['hostavantage'] = 0.0 if hostavantagecol is None else dataFrame.loc[:, hostavantagecol]
         newTable['hidx'] = newTable.host.apply(lambda x: self.itemlut[x])
         newTable['vidx'] = newTable.visit.apply(lambda x: self.itemlut[x])
         self.table = pd.concat([self.table, newTable], ignore_index=True)

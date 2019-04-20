@@ -75,7 +75,7 @@ class EloRanker(TimeSeriesRanker):
         elif self.data.itemnum == 0:
             self.indexScoreLut = []
         
-    def update_single(self, host, visit, hscore, vscore, time="", hostavantage=0.0):
+    def update_single(self, host, visit, hscore, vscore, time=""):
         """
         Update rating based on a single record.
         
@@ -86,23 +86,20 @@ class EloRanker(TimeSeriesRanker):
         hscore: score of host player
         vscore: score of visit player
         time: timestamp of the game. Should be numerical value. Default set to empty string.
-        hostavantage: should the host player has some advantage over visit player, such as gaming field is located at host player's field, this value should be set to positive. If visit player has that advantage, this value should be set to negative. Default set to 0. 
 
         Return
         ------
         Tuple of (newHostRating, newVisitRating)
         """
-        self.data.update_single(host, visit, hscore, vscore, time=time, hostavantage=hostavantage)
+        self.data.update_single(host, visit, hscore, vscore, time=time)
         ih = self.data.itemlut[host]
         iv = self.data.itemlut[visit]
         if ih >= len(self.indexScoreLut):
             self.indexScoreLut.append(self.baseline)
         if iv >= len(self.indexScoreLut):
             self.indexScoreLut.append(self.baseline)
-        ha = 0 if hostavantage<0 else hostavantage
-        va = 0 if hostavantage>0 else -hostavantage
-        rh = self.indexScoreLut[ih] + ha
-        rv = self.indexScoreLut[iv] + va
+        rh = self.indexScoreLut[ih]
+        rv = self.indexScoreLut[iv]
 
         xi, K = self.xi, self.K
         s = 0.5 if abs(hscore - vscore) <= self.drawMargin else (1 if hscore > vscore else 0)
@@ -126,11 +123,9 @@ class EloRanker(TimeSeriesRanker):
 
         xi, K = self.xi, self.K
         for rec in table.iteritem():
-            ih, iv, hscore, vscore, hostavantage = rec.indexHost, rec.indexVisit, rec.hscore, rec.vscore, rec.hostavantage
-            ha = 0 if hostavantage<0 else hostavantage
-            va = 0 if hostavantage>0 else -hostavantage
-            rh = self.indexScoreLut[ih] + ha
-            rv = self.indexScoreLut[iv] + va
+            ih, iv, hscore, vscore = rec.indexHost, rec.indexVisit, rec.hscore, rec.vscore
+            rh = self.indexScoreLut[ih]
+            rv = self.indexScoreLut[iv]
             s = 0.5 if abs(hscore - vscore) <= self.drawMargin else (1 if hscore > vscore else 0)
             phwin = 1/(1+10**((rv - rh)/xi))
             alpha = (abs(hscore-vscore)+3)**0.8/(7.5+0.0006*(rh - rv))
@@ -151,10 +146,10 @@ class EloRanker(TimeSeriesRanker):
         ------
         float: probability of winning.
         """
-        ih = self.data.itemlut[host]
-        iv = self.data.itemlut[visit]
-        rh = self.indexScoreLut[ih]
-        rv = self.indexScoreLut[iv]
+        ih = self.data.itemlut.get(host, None)
+        iv = self.data.itemlut.get(visit, None)
+        rh = self.indexScoreLut[ih] if ih is not None else self.baseline
+        rv = self.indexScoreLut[iv] if iv is not None else self.baseline
         return 1/(1+10**((rv-rh)/self.xi))
 
     def leaderboard(self, method="min"):
@@ -270,7 +265,7 @@ class TrueSkillRanker(TimeSeriesRanker):
             self.indexMiuLut = []
             self.indexSigmaSqrLut = []
     
-    def update_single(self, host, visit, hscore, vscore, time="", hostavantage=0.0):
+    def update_single(self, host, visit, hscore, vscore, time=""):
         """
         Update rating based on a single record.
         
@@ -281,7 +276,6 @@ class TrueSkillRanker(TimeSeriesRanker):
         hscore: score of host player
         vscore: score of visit player
         time: timestamp of the game. Should be numerical value. Default set to empty string.
-        hostavantage: should the host player has some advantage over visit player, such as gaming field is located at host player's field, this value should be set to positive. If visit player has that advantage, this value should be set to negative. Default set to 0. 
 
         Return
         ------
@@ -294,10 +288,8 @@ class TrueSkillRanker(TimeSeriesRanker):
         if ih >= len(self.indexMiuLut) or iv >= len(self.indexMiuLut) :
             self.indexMiuLut = self.indexMiuLut[:] + [self.miu] * (self.data.itemnum - len(self.indexMiuLut))
             self.indexSigmaSqrLut = self.indexSigmaSqrLut[:] + [1] * (self.data.itemnum - len(self.indexSigmaSqrLut))
-        ha = 0 if hostavantage<0 else hostavantage
-        va = 0 if hostavantage>0 else -hostavantage
-        mh = self.indexMiuLut[ih] + ha
-        mv = self.indexMiuLut[iv] + va
+        mh = self.indexMiuLut[ih]
+        mv = self.indexMiuLut[iv]
         sh = self.indexSigmaSqrLut[ih]
         sv = self.indexSigmaSqrLut[iv]
         cs = sh + sv + 2*beta*beta
@@ -330,11 +322,9 @@ class TrueSkillRanker(TimeSeriesRanker):
             self.indexSigmaSqrLut = self.indexSigmaSqrLut[:] + [1] * (self.data.itemnum - len(self.indexSigmaSqrLut))
         
         for rec in table.iteritem():
-            ih, iv, hscore, vscore, hostavantage = rec.indexHost, rec.indexVisit, rec.hscore, rec.vscore, rec.hostavantage
-            ha = 0 if hostavantage<0 else hostavantage
-            va = 0 if hostavantage>0 else -hostavantage
-            mh = self.indexMiuLut[ih] + ha
-            mv = self.indexMiuLut[iv] + va
+            ih, iv, hscore, vscore = rec.indexHost, rec.indexVisit, rec.hscore, rec.vscore
+            mh = self.indexMiuLut[ih]
+            mv = self.indexMiuLut[iv]
             sh = self.indexSigmaSqrLut[ih]
             sv = self.indexSigmaSqrLut[iv]
             cs = sh + sv + 2*beta*beta
@@ -364,12 +354,12 @@ class TrueSkillRanker(TimeSeriesRanker):
         float: probability of winning.
         """
         beta = self.beta
-        ih = self.data.itemlut[host]
-        iv = self.data.itemlut[visit]
-        mh = self.indexMiuLut[ih]
-        mv = self.indexMiuLut[iv]
-        sh = self.indexSigmaSqrLut[ih]
-        sv = self.indexSigmaSqrLut[iv]
+        ih = self.data.itemlut.get(host, None)
+        iv = self.data.itemlut.get(visit, None)
+        mh = self.indexMiuLut[ih] if ih is not None else self.miu
+        mv = self.indexMiuLut[iv] if iv is not None else self.miu
+        sh = self.indexSigmaSqrLut[ih] if ih is not None else 1
+        sv = self.indexSigmaSqrLut[iv] if iv is not None else 1
         cs = sh + sv + 2*beta*beta
         return cdf((mh-mv)/cs**(1/2))
 
@@ -503,7 +493,7 @@ class GlickoRanker(TimeSeriesRanker):
     def update_single_batch(self, dataFrame):
         # check time info
         g, E, volatility_iter, drawMargin = GlickoRanker.g, GlickoRanker.E, self.volatility_iter, self.drawMargin
-        self.data.update_raw(dataFrame, weightcol='weight', timecol='time', hostavantagecol='hostavantage')
+        self.data.update_raw(dataFrame, weightcol='weight', timecol='time')
         if self.data.itemnum > len(self.miu) :
             self.miu = self.miu[:] + [0] * (self.data.itemnum - len(self.miu))
             self.phi = self.phi[:] + [self.rd / self.factor] * (self.data.itemnum - len(self.phi))
@@ -514,9 +504,8 @@ class GlickoRanker(TimeSeriesRanker):
             'visit': pd.concat([dataFrame.visit, dataFrame.host]),
             'hscore': pd.concat([dataFrame.hscore, dataFrame.vscore]),
             'vscore': pd.concat([dataFrame.vscore, dataFrame.hscore]),
-            'time': pd.concat([dataFrame.time, dataFrame.time]),
-            'hostavantage': pd.concat([dataFrame.hostavantage, -dataFrame.hostavantage])
-        }, columns = ['host', 'visit', 'hscore', 'vscore', 'time', 'hostavantage']).reset_index(drop=True).sort_values(by=['time', 'host'])
+            'time': pd.concat([dataFrame.time, dataFrame.time])
+        }, columns = ['host', 'visit', 'hscore', 'vscore', 'time']).reset_index(drop=True).sort_values(by=['time', 'host'])
 
         gx = dict()
         players = set(mtx.host)
@@ -529,12 +518,10 @@ class GlickoRanker(TimeSeriesRanker):
             vt = []
             dt = []
             for rec in results.itertuples(index=False):
-                ha = 0 if rec.hostavantage<0 else rec.hostavantage
-                va = 0 if rec.hostavantage>0 else -rec.hostavantage
                 vidx = self.data.itemlut[rec.visit]
 
                 s = 0.5 if abs(rec.hscore - rec.vscore) <= drawMargin else (0 if rec.hscore < rec.vscore else 1)
-                ex = E(self.miu[hidx] + ha, self.miu[vidx] + va, self.phi[vidx])
+                ex = E(self.miu[hidx], self.miu[vidx], self.phi[vidx])
                 vt.append(gx[vidx]**2 * ex * (1 - ex))
                 dt.append(gx[vidx] * (s - ex))
             v = 1/sum(vt)
@@ -549,6 +536,7 @@ class GlickoRanker(TimeSeriesRanker):
             player, idx = kv
             if player not in players:
                 self.phi[idx] = math.sqrt(self.phi[idx]**2 + self.sigma[idx]**2)
+        return
 
     def update(self, table):
         """
@@ -586,9 +574,17 @@ class GlickoRanker(TimeSeriesRanker):
         float: probability of winning.
         """
         E = GlickoRanker.E
-        hidx = self.data.itemlut[host]
-        vidx = self.data.itemlut[visit]
-        return E(self.miu[hidx], self.miu[vidx], math.sqrt(self.phi[hidx]**2 + self.phi[vidx]**2))
+        hidx = self.data.itemlut.get(host, None)
+        vidx = self.data.itemlut.get(visit, None)
+        hmiu = self.miu[hidx] if hidx is not None else 0
+        vmiu = self.miu[vidx] if vidx is not None else 0
+        hphi = self.phi[hidx] if hidx is not None else self.rd / self.factor
+        vphi = self.phi[vidx] if vidx is not None else self.rd / self.factor
+        return E(
+            hmiu, 
+            vmiu, 
+            math.sqrt(hphi**2 + vphi**2)
+        )
 
     def leaderboard(self, method="min"):
         """

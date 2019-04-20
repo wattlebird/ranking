@@ -60,9 +60,6 @@ target/
 *.ipynb
 *.ipynb_checkpoints
 
-#Data
-Data/
-
 #IDEs
 .idea
 .vscode/
