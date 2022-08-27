@@ -6,7 +6,6 @@ import scipy as sp
 from rankit.Table import Table
 from scipy.sparse import coo_matrix
 from scipy.sparse.linalg import lsqr
-from .matrix_build import fast_colley_build
 from numpy.linalg import norm
 
 class UnsupervisedRanker(object):
@@ -84,6 +83,13 @@ class MasseyRanker(UnsupervisedRanker):
 
         return self._showcase(table, False)
 
+def colleyAgg(df, drawMargin, isInverted):
+    rtn = np.sign(df.hscore - df.vscore) * df.weight
+    if isInverted:
+        rtn = -rtn
+    rtn[np.abs(df.hscore - df.vscore) < drawMargin] = 0
+    return np.sum(rtn)
+
 class ColleyRanker(UnsupervisedRanker):
     """Colley ranking system proposed by Wesley Colley: 
     Colley's bias free college football ranking method: The colley matrix explained, 2002.
@@ -112,12 +118,17 @@ class ColleyRanker(UnsupervisedRanker):
         pandas.DataFrame, with column ['name', 'rating', 'rank']
         """
         drawMargin = self.drawMargin
-        data = table.table[['hidx', 'vidx', 'hscore', 'vscore', 'weight']]
-
-        idx = data.iloc[:, :2]
-        score = data.iloc[:, 2:]
-        C, b = fast_colley_build(np.require(idx, dtype=np.int32), np.require(score, dtype=np.float64), 
-                                 table.itemnum, drawMargin)
+        C = np.zeros((table.itemnum, table.itemnum))
+        b = np.zeros(table.itemnum)
+        for (i, j), c in table.table.groupby(['hidx', 'vidx'])['weight'].agg('count').iteritems():
+            C[i][j] -= c
+        for inx, val in table.table.groupby('hidx').apply(colleyAgg, drawMargin, False).iteritems():
+            b[inx] += val
+        for inx, val in table.table.groupby('vidx').apply(colleyAgg, drawMargin, True).iteritems():
+            b[inx] += val
+        C = C + C.T
+        np.fill_diagonal(C, -np.sum(C, axis=0)+2)
+        b = b/2 + 1
 
         rating = sp.linalg.solve(C, b)
         if hasattr(self, "rating"):
@@ -143,7 +154,7 @@ class KeenerRanker(UnsupervisedRanker):
     threshold: (0, +Inf), default 1e-4
         The threshold that controls when the algorithm will converge.
     """
-    def __init__(self, func=None, epsilon=1e-4, threshold=1e-4):
+    def __init__(self, func=lambda x: x, epsilon=1e-4, threshold=1e-4):
         self.func = func
         self.epsilon = epsilon
         self.threshold = threshold
@@ -161,25 +172,21 @@ class KeenerRanker(UnsupervisedRanker):
         pandas.DataFrame, with column ['name', 'rating', 'rank']
         """
         func, epsilon, threshold = self.func, self.epsilon, self.threshold
-        mtx = pd.DataFrame(data={
-            'hidx': pd.concat([table.table.hidx, table.table.vidx]),
-            'vidx': pd.concat([table.table.vidx, table.table.hidx]),
-            'hscore': pd.concat([table.table.hscore, table.table.vscore]),
-            'vscore': pd.concat([table.table.vscore, table.table.hscore]),
-            'weight': pd.concat([table.table.weight, table.table.weight])
-        }, columns = ['hidx', 'vidx', 'hscore', 'vscore', 'weight']).reset_index(drop=True)
-        mtx['score'] = mtx.hscore+mtx.vscore
-        mtx['hscore'] = (mtx['hscore']+1)/(mtx['score']+2)
-        mtx['vscore'] = (mtx['vscore']+1)/(mtx['score']+2)
-        if func is not None:
-            mtx['hscore'] = mtx.hscore.apply(func)
-            mtx['vscore'] = mtx.vscore.apply(func)
-        mtx['hscore'] = mtx['hscore']*mtx['weight']
-        mtx['vscore'] = mtx['vscore']*mtx['weight']
-        mtx = mtx.groupby(['hidx', 'vidx'])[['hscore', 'vscore']].mean()
-        mtx.reset_index(inplace=True)
+        normalizedh = (table.table['hscore'] + 1) / (table.table['vscore'] + table.table['hscore'] + 2) * table.table['weight']
+        normalizedv = table.table['weight'] - normalizedh
+        gp = pd.DataFrame(data={
+            'hidx': table.table['hidx'],
+            'vidx': table.table['vidx'],
+            'hscore': normalizedh,
+            'vscore': normalizedv
+        }).groupby(['hidx', 'vidx']).agg('mean').reset_index(drop=False)
 
-        D = coo_matrix((mtx.hscore.values, (mtx.hidx.values, mtx.vidx.values)), shape=(table.itemnum, table.itemnum)).tocsr()
+        D = coo_matrix((
+            func(np.concatenate((gp.hscore.values, gp.vscore.values))),
+            (np.concatenate((gp.hidx.values, gp.vidx.values)),
+            np.concatenate((gp.vidx.values, gp.hidx.values)))),
+            shape=(table.itemnum, table.itemnum)
+        ).tocsr()
 
         r = np.ones(table.itemnum)/table.itemnum
         pr = np.ones(table.itemnum)
@@ -228,29 +235,26 @@ class MarkovRanker(UnsupervisedRanker):
         restart, threshold = self.restart, self.threshold
         if restart>1 or restart<0:
             raise ValueError("restart rate should be between 0 and 1.")
-        mtx = pd.DataFrame(data={
-            'hidx': pd.concat([table.table.hidx, table.table.vidx]),
-            'vidx': pd.concat([table.table.vidx, table.table.hidx]),
-            'hscore': pd.concat([table.table.hscore, table.table.vscore]),
-            'vscore': pd.concat([table.table.vscore, table.table.hscore]),
-            'weight': pd.concat([table.table.weight, table.table.weight])
-        }, columns = ['hidx', 'vidx', 'hscore', 'vscore', 'weight']).reset_index(drop=True)
-        mtx['hscore'] = mtx['hscore']*mtx['weight']
-        mtx['vscore'] = mtx['vscore']*mtx['weight']
+        gp = pd.DataFrame(data={
+            'hidx': table.table['hidx'],
+            'vidx': table.table['vidx'],
+            'hscore': np.multiply(table.table.hscore, table.table.weight),
+            'vscore': np.multiply(table.table.vscore, table.table.weight)
+        }).groupby(['hidx', 'vidx']).agg('mean').reset_index(drop=False)
 
-        mtx_ = mtx.groupby('hidx').vscore.sum().rename('htotalvote')
-        
-        mtx = mtx.groupby(['hidx', 'vidx'])[['hscore', 'vscore']].mean()
-        mtx = pd.concat([mtx.reset_index().set_index('hidx'), mtx_], axis=1).reset_index()
-        mtx['prob'] = mtx['vscore']/mtx['htotalvote']
-
-        D = coo_matrix((mtx.prob.values, (mtx.hidx.values, mtx.vidx.values)), shape=(table.itemnum, table.itemnum)).transpose().tocsr()
+        D = coo_matrix((
+            np.concatenate((gp.vscore.values, gp.hscore.values)),
+            (np.concatenate((gp.hidx.values, gp.vidx.values)),
+            np.concatenate((gp.vidx.values, gp.hidx.values)))),
+            shape=(table.itemnum, table.itemnum)
+        ).tocsr()
+        s = D.sum(axis=1).A1
         r = np.ones(table.itemnum)/table.itemnum
         pr = np.ones(table.itemnum)
         while norm(pr-r)>threshold:
             pr = r
             vrestart = restart*np.ones(table.itemnum)/table.itemnum
-            r = (1-restart)*D.dot(r)+vrestart
+            r = (1-restart)*D.dot(r)/s+vrestart
             r /= np.sum(r)
         
         if hasattr(self, "rating"):
@@ -295,19 +299,19 @@ class ODRanker(UnsupervisedRanker):
         pandas.DataFrame, with column ['name', 'rating', 'rank']
         """
         method, epsilon, threshold = self.method, self.epsilon, self.threshold
-        mtx = pd.DataFrame(data={
-            'hidx': pd.concat([table.table.hidx, table.table.vidx]),
-            'vidx': pd.concat([table.table.vidx, table.table.hidx]),
-            'hscore': pd.concat([table.table.hscore, table.table.vscore]),
-            'vscore': pd.concat([table.table.vscore, table.table.hscore]),
-            'weight': pd.concat([table.table.weight, table.table.weight])
-        }, columns = ['hidx', 'vidx', 'hscore', 'vscore', 'weight']).reset_index(drop=True)
-        mtx['hscore'] = mtx['hscore']*mtx['weight']
-        mtx['vscore'] = mtx['vscore']*mtx['weight']
-        mtx = mtx.groupby(['hidx', 'vidx'])[['hscore', 'vscore']].mean()
-        mtx.reset_index(inplace=True)
+        gp = pd.DataFrame(data={
+            'hidx': table.table['hidx'],
+            'vidx': table.table['vidx'],
+            'hscore': np.multiply(table.table.hscore, table.table.weight),
+            'vscore': np.multiply(table.table.vscore, table.table.weight)
+        }).groupby(['hidx', 'vidx']).agg('mean').reset_index(drop=False)
 
-        D = coo_matrix((mtx.vscore.values, (mtx.hidx.values, mtx.vidx.values)), shape=(table.itemnum, table.itemnum)).tocsr()
+        D = coo_matrix((
+            np.concatenate((gp.vscore.values, gp.hscore.values)),
+            (np.concatenate((gp.hidx.values, gp.vidx.values)),
+            np.concatenate((gp.vidx.values, gp.hidx.values)))),
+            shape=(table.itemnum, table.itemnum)
+        ).tocsr()
         Dt = D.transpose()
 
         prevd = np.ones(table.itemnum)/table.itemnum
@@ -350,24 +354,25 @@ class DifferenceRanker(UnsupervisedRanker):
         -------
         pandas.DataFrame, with column ['name', 'rating', 'rank']
         """
-        mtx = pd.DataFrame(data={
-            'hidx': pd.concat([table.table.hidx, table.table.vidx]),
-            'vidx': pd.concat([table.table.vidx, table.table.hidx]),
-            'hscore': pd.concat([table.table.hscore, table.table.vscore]),
-            'vscore': pd.concat([table.table.vscore, table.table.hscore]),
-            'weight': pd.concat([table.table.weight, table.table.weight])
-        }, columns = ['hidx', 'vidx', 'hscore', 'vscore', 'weight']).reset_index(drop=True)
-        mtx['score'] = mtx['hscore']-mtx['vscore']
-        mtx['score'] = mtx['score']*mtx['weight']
-        mtx = mtx.groupby(['hidx', 'vidx']).score.mean().reset_index()
-        r = mtx.groupby('hidx').score.sum()/table.itemnum
-        r = r.sort_index()
+        gp = pd.DataFrame(data={
+            'hidx': table.table.hidx,
+            'vidx': table.table.vidx,
+            'score': (table.table.hscore - table.table.vscore) * table.table.weight
+        }, columns = ['hidx', 'vidx', 'score']).groupby(['hidx', 'vidx']).agg('mean').reset_index(drop=False)
+
+        D = coo_matrix((
+            np.concatenate((gp.score.values, -gp.score.values)),
+            (np.concatenate((gp.hidx.values, gp.vidx.values)),
+            np.concatenate((gp.vidx.values, gp.hidx.values)))),
+            shape=(table.itemnum, table.itemnum)
+        ).tocsr()
+        s = D.sum(axis=1).A1/table.itemnum
 
         if hasattr(self, "rating"):
-            self.rating["rating"] = r.values
+            self.rating["rating"] = s
         else:
             self.rating = pd.DataFrame({
                 "iidx": np.arange(table.itemnum, dtype=np.int),
-                "rating": r})
+                "rating": s})
         return self._showcase(table, False)
 
