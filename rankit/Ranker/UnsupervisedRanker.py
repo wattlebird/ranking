@@ -23,7 +23,7 @@ class UnsupervisedRanker(object):
         rst = pd.DataFrame({
             "name": itemname,
             "rating": rating["rating"]})
-        rst['rank'] = rst.rating.rank(method='min', ascending=ascending).astype(np.int32)
+        rst['rank'] = rst.rating.rank(method='min', ascending=ascending).astype(int)
         return rst.sort_values(by=['rating', 'name'], ascending=ascending).reset_index(drop=True)
 
 class MasseyRanker(UnsupervisedRanker):
@@ -59,8 +59,8 @@ class MasseyRanker(UnsupervisedRanker):
         n = table.itemnum
         y = np.zeros(m)
         dat = np.zeros(m*2, dtype=np.float)
-        col = np.zeros(m*2, dtype=np.int)
-        row = np.zeros(m*2, dtype=np.int)
+        col = np.zeros(m*2, dtype=int)
+        row = np.zeros(m*2, dtype=int)
         for i, itm in enumerate(data.itertuples(index=False, name=None)):
             row[i*2]=i; col[i*2]=itm[0]; dat[i*2]=itm[4];
             row[i*2+1]=i; col[i*2+1]=itm[1]; dat[i*2+1]=-itm[4];
@@ -78,7 +78,7 @@ class MasseyRanker(UnsupervisedRanker):
             self.rating["rating"] = rating
         else:
             self.rating = pd.DataFrame({
-                "iidx": np.arange(n, dtype=np.int),
+                "iidx": np.arange(n, dtype=int),
                 "rating": rating})
 
         return self._showcase(table, False)
@@ -135,7 +135,7 @@ class ColleyRanker(UnsupervisedRanker):
             self.rating["rating"] = rating
         else:
             self.rating = pd.DataFrame({
-                "iidx": np.arange(table.itemnum, dtype=np.int),
+                "iidx": np.arange(table.itemnum, dtype=int),
                 "rating": rating})
 
         return self._showcase(table, False)
@@ -200,7 +200,7 @@ class KeenerRanker(UnsupervisedRanker):
             self.rating["rating"] = r
         else:
             self.rating = pd.DataFrame({
-                "iidx": np.arange(table.itemnum, dtype=np.int),
+                "iidx": np.arange(table.itemnum, dtype=int),
                 "rating": r})
         return self._showcase(table, False)
 
@@ -243,25 +243,25 @@ class MarkovRanker(UnsupervisedRanker):
         }).groupby(['hidx', 'vidx']).agg('mean').reset_index(drop=False)
 
         D = coo_matrix((
-            np.concatenate((gp.vscore.values, gp.hscore.values)),
+            np.concatenate((gp.hscore.values, gp.vscore.values)),
             (np.concatenate((gp.hidx.values, gp.vidx.values)),
             np.concatenate((gp.vidx.values, gp.hidx.values)))),
             shape=(table.itemnum, table.itemnum)
         ).tocsr()
-        s = D.sum(axis=1).A1
         r = np.ones(table.itemnum)/table.itemnum
         pr = np.ones(table.itemnum)
         while norm(pr-r)>threshold:
             pr = r
             vrestart = restart*np.ones(table.itemnum)/table.itemnum
-            r = (1-restart)*D.dot(r)/s+vrestart
-            r /= np.sum(r)
+            t = D.dot(r)
+            t /= np.sum(t)
+            r = (1-restart)*t+vrestart
         
         if hasattr(self, "rating"):
             self.rating["rating"] = r
         else:
             self.rating = pd.DataFrame({
-                "iidx": np.arange(table.itemnum, dtype=np.int),
+                "iidx": np.arange(table.itemnum, dtype=int),
                 "rating": r})
         return self._showcase(table, False)
 
@@ -334,7 +334,7 @@ class ODRanker(UnsupervisedRanker):
             self.rating["rating"] = r
         else:
             self.rating = pd.DataFrame({
-                "iidx": np.arange(table.itemnum, dtype=np.int),
+                "iidx": np.arange(table.itemnum, dtype=int),
                 "rating": r})
         return self._showcase(table, True if method=='defence' else False)
 
@@ -372,7 +372,7 @@ class DifferenceRanker(UnsupervisedRanker):
             self.rating["rating"] = s
         else:
             self.rating = pd.DataFrame({
-                "iidx": np.arange(table.itemnum, dtype=np.int),
+                "iidx": np.arange(table.itemnum, dtype=int),
                 "rating": s})
         return self._showcase(table, False)
 
