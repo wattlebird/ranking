@@ -23,7 +23,7 @@ class UnsupervisedRanker(object):
         rst = pd.DataFrame({
             "name": itemname,
             "rating": rating["rating"]})
-        rst['rank'] = rst.rating.rank(method='min', ascending=ascending).astype(int32)
+        rst['rank'] = rst.rating.rank(method='min', ascending=ascending).astype(int)
         return rst.sort_values(by=['rating', 'name'], ascending=ascending).reset_index(drop=True)
 
 class MasseyRanker(UnsupervisedRanker):
