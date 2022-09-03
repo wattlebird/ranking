@@ -8,7 +8,7 @@ with open('requirements.txt') as f:
     required = f.read().splitlines()
 
 setup(name="rankit",
-      version="0.3.1",
+      version="0.3.2",
       packages=find_packages(exclude=['example']),
       install_requires=required,
       include_package_data=True,
