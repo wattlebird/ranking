@@ -92,12 +92,10 @@ class Table(object):
             self.indexlut.append(visit)
             self.itemnum += 1
         
-        self.table.append(
-            pd.DataFrame([[host, visit, hscore, vscore, weight, time, self.itemlut[host], self.itemlut[visit]]],
+        t = pd.DataFrame([[host, visit, hscore, vscore, weight, time, self.itemlut[host], self.itemlut[visit]]],
               columns=['host', 'visit', 'hscore', 'vscore', 'weight', 'time', 'hidx', 'vidx']
-            ),
-            ignore_index=True
-        )
+            )
+        self.table = pd.concat([self.table, t], ignore_index=True)
 
     def setup(self, itemlut, indexlut, itemnum):
         self.itemlut = itemlut
