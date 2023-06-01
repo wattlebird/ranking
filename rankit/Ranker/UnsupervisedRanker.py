@@ -58,7 +58,7 @@ class MasseyRanker(UnsupervisedRanker):
         m = data.shape[0]
         n = table.itemnum
         y = np.zeros(m)
-        dat = np.zeros(m*2, dtype=np.float)
+        dat = np.zeros(m*2, dtype=np.float32)
         col = np.zeros(m*2, dtype=int)
         row = np.zeros(m*2, dtype=int)
         for i, itm in enumerate(data.itertuples(index=False, name=None)):
@@ -120,11 +120,11 @@ class ColleyRanker(UnsupervisedRanker):
         drawMargin = self.drawMargin
         C = np.zeros((table.itemnum, table.itemnum))
         b = np.zeros(table.itemnum)
-        for (i, j), c in table.table.groupby(['hidx', 'vidx'])['weight'].agg('count').iteritems():
+        for (i, j), c in table.table.groupby(['hidx', 'vidx'])['weight'].agg('count').items():
             C[i][j] -= c
-        for inx, val in table.table.groupby('hidx').apply(colleyAgg, drawMargin, False).iteritems():
+        for inx, val in table.table.groupby('hidx').apply(colleyAgg, drawMargin, False).items():
             b[inx] += val
-        for inx, val in table.table.groupby('vidx').apply(colleyAgg, drawMargin, True).iteritems():
+        for inx, val in table.table.groupby('vidx').apply(colleyAgg, drawMargin, True).items():
             b[inx] += val
         C = C + C.T
         np.fill_diagonal(C, -np.sum(C, axis=0)+2)
